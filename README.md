@@ -6,17 +6,17 @@ This plugin provides the player with a way to match a trade offer by providing a
 
 To use: 
 1) Wait until the other player has submitted their offer
-2) SHIFT-Right click on the item you plan to trade in return (coins for items, or items for coins)
+2) SHIFT-right click on the item you plan to trade in return (coins for items, or items for coins)
 3) Select the option to "Offer at Price <_Selected Item_>"
 4) Enter the price of the item being given or received
 5) Submitting this value will calculate number of coins or items needed to match the received items
 
 Currently this works for the following trades:
 - OTHER player offers **N** items.
-  - You must SHIFT-click your coins and enter the **Price** per item.
+  - You must SHIFT-right click your coins and enter the **Price** per item.
   - This will offer N x Price coins.
 - OTHER player offers **N** coins.
-  - You must SHIFT-click the traded item and enter the **Price** per item.
+  - You must SHIFT-right click the traded item and enter the **Price** per item.
   - This will offer N / Price items.
 
 Notes:

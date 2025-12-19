@@ -15,7 +15,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 @Slf4j
 @PluginDescriptor(
 	name = "Offer at Price",
-	description = "SHIFT-click an item to offer a matching quantity for a provided price",
+	description = "SHIFT-right click an item to offer a matching quantity for a provided price",
 	tags = {"trade", "auto", "calc", "calculate", "value"}
 )
 public class OfferAtPricePlugin extends Plugin
