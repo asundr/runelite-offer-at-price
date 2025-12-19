@@ -25,6 +25,7 @@ Notes:
   - The other player has offered more than one type of item
   - The other player offered currency and you're also trying to offer currency
   - The other player offered non-currency items and you're also trying to offer non-currency items
+- Plugin assumes that your offer window is empty. It will not take into account any items that you have already offered.
 - Make sure you have enough items to actually cover the item price you provide
 - When offering items, it's possible that the price wont divide perfectly into the coins offered by the other player. A config option is provided to determine if this value should be rounded up, down or to nearest.
 - This plugin is intended for simple trades of one type of item for currency and doesn't support multiple item types.
