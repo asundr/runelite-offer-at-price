@@ -28,9 +28,11 @@ package org.asundr;
 import lombok.Setter;
 import net.runelite.api.*;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.gameval.VarClientID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.callback.ClientThread;
+import net.runelite.client.chat.ChatClient;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.input.KeyListener;
 
@@ -111,21 +113,32 @@ public class PriceKeyListener implements KeyListener
         {
             return 0;
         }
-        final int inputPricePerItem = Integer.parseInt(transformedPrice);
+        final int inputPricePerItem = Math.max(0, Integer.parseInt(transformedPrice));
         long outNum = 0;
         if (offertype == OfferType.SELL)
         {
             if (inputPricePerItem != 0)
             {
                 final long receivedCurrency = PriceUtils.getTotalCurrencyValue(PriceUtils.TRADEOTHER);
-                final long sellCount = config.defaultRoundingMethod().method.apply((float)receivedCurrency / (float)inputPricePerItem);
-                outNum = Math.min(Integer.MAX_VALUE, sellCount);
+                final long alreadyOfferedItems = PriceUtils.getQuantity(InventoryID.TRADEOFFER, tradeCalculatorManager.getActiveItemID());
+                final long sellCount = config.defaultRoundingMethod().method.apply((float)receivedCurrency / (float)inputPricePerItem) - alreadyOfferedItems;
+                if (sellCount < 0)
+                {
+
+                }
+                outNum = Math.max(0, Math.min(Integer.MAX_VALUE, sellCount));
             }
         }
         else
         {
             final long receivedQuantity = PriceUtils.getQuantity(PriceUtils.TRADEOTHER, PriceUtils.getFirstItem(PriceUtils.TRADEOTHER));
-            outNum = Math.min(inputPricePerItem * receivedQuantity, Integer.MAX_VALUE);
+            final long alreadyOfferedCurrency = PriceUtils.getTotalCurrencyValue(InventoryID.TRADEOFFER);
+            final long offerQuantity = inputPricePerItem * receivedQuantity - alreadyOfferedCurrency;
+            if (offerQuantity < 0)
+            {
+                ChatClient chatClient; chatClient.submitGc()
+            }
+            outNum = Math.max(0, Math.min(offerQuantity, Integer.MAX_VALUE));
         }
         return outNum;
     }
