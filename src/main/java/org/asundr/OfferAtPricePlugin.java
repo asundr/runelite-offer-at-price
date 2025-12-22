@@ -29,7 +29,9 @@ import com.google.inject.Provides;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.client.Notifier;
 import net.runelite.client.callback.ClientThread;
+import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.game.ItemManager;
@@ -51,13 +53,15 @@ public class OfferAtPricePlugin extends Plugin
 	@Inject private EventBus eventBus;
 	@Inject private KeyManager keyManager;
 	@Inject private ItemManager itemManager;
+	@Inject private ChatMessageManager chatMessageManager;
+	@Inject private Notifier notifier;
 
 	private TradeCalculatorManager tradeCalculatorManager;
 
 	@Override
 	protected void startUp() throws Exception
 	{
-		PriceUtils.initialize(client, itemManager);
+		PriceUtils.initialize(client, itemManager, notifier, chatMessageManager);
 		tradeCalculatorManager = new TradeCalculatorManager(client, keyManager, clientThread, eventBus, config);
 		eventBus.register(tradeCalculatorManager);
 	}

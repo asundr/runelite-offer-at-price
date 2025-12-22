@@ -43,4 +43,14 @@ public interface OfferAtPriceConfig extends Config
 	{
 		return RoundingRule.DOWN;
 	}
+
+	@ConfigItem(
+			keyName = "notifyNeedToRemove", name = "Notify if need to remove", description = "Send notification if you need to remove items from what has been offered at entered price"
+	)
+	default boolean notifyNeedToRemove() { return true; }
+
+	@ConfigItem(
+			keyName = "notifyNotEnough", name = "Notify if not enough", description = "Send notification if you don't have enough items to match the other offer at the entered price"
+	)
+	default boolean notifyNotEnough() { return true; }
 }

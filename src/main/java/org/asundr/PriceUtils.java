@@ -25,11 +25,16 @@
 
 package org.asundr;
 
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.widgets.Widget;
+import net.runelite.client.Notifier;
+import net.runelite.client.chat.ChatMessageBuilder;
+import net.runelite.client.chat.ChatMessageManager;
+import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.game.ItemManager;
 
 import java.util.Arrays;
@@ -46,14 +51,18 @@ public class PriceUtils
 
     private static Client client;
     private static ItemManager itemManager;
+    private static Notifier notifier;
+    private static ChatMessageManager chatMessageManager;
 
     // Caches a map of original item IDs to the ID of their noted variant
     private static final HashMap<Integer, Integer> notedIdMap = new HashMap<>();
 
-    public static void initialize(final Client client, final ItemManager itemManager)
+    public static void initialize(final Client client, final ItemManager itemManager, final Notifier notifier, final ChatMessageManager chatMessageManager)
     {
         PriceUtils.client = client;
         PriceUtils.itemManager = itemManager;
+        PriceUtils.notifier = notifier;
+        PriceUtils.chatMessageManager = chatMessageManager;
     }
 
     // Removes html tags from string
@@ -217,6 +226,20 @@ public class PriceUtils
             }
             var comp = itemManager.getItemComposition(item.getId());
             notedIdMap.put(item.getId(), comp.getNote() == -1 ? item.getId() : comp.getLinkedNoteId());
+        }
+    }
+
+    public static void chatMessage(final boolean notify, final String message)
+    {
+        final ChatMessageBuilder messageBuilder = new ChatMessageBuilder()
+                .append(message);
+        chatMessageManager.queue(QueuedMessage.builder()
+                .type(ChatMessageType.GAMEMESSAGE)
+                .runeLiteFormattedMessage(messageBuilder.build())
+                .build());
+        if (notify)
+        {
+            notifier.notify(message);
         }
     }
 
