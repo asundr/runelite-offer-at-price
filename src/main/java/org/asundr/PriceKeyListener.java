@@ -91,7 +91,7 @@ public class PriceKeyListener implements KeyListener
     private void handleInput()
     {
         clientThread.invoke(() -> {
-            client.setVarcStrValue(VarClientID.MESLAYERINPUT, Long.toString(getOutputQuantity()));
+            client.setVarcStrValue(VarClientID.MESLAYERINPUT, Long.toString(getOutputQuantity(true)));
             if (onSubmitted != null)
             {
                 onSubmitted.run();
@@ -101,7 +101,7 @@ public class PriceKeyListener implements KeyListener
     }
 
     // Analyzes the current trade type and returns a quantity based on the price the player has entered
-    private long getOutputQuantity()
+    private long getOutputQuantity(final boolean printWarning)
     {
         final String inputText = lastInputText;
         if (!inputText.matches("[0-9]+(?:\\.[0-9]+[kmb])?"))
@@ -124,19 +124,22 @@ public class PriceKeyListener implements KeyListener
                 final long alreadyOfferedItems = PriceUtils.getQuantity(InventoryID.TRADEOFFER, tradeCalculatorManager.getActiveItemID());
                 final long sellCount = config.defaultRoundingMethod().method.apply((float)receivedCurrency / (float)inputPricePerItem) - alreadyOfferedItems;
                 final long inventoryCurrency = PriceUtils.getTotalCurrencyValue(InventoryID.INV);
-                if (sellCount < 0)
+                if (printWarning)
                 {
-                    PriceUtils.chatMessage(config.notifyNeedToRemove(),
-                            String.format("[Offer at Price] You need to remove %s from your current offer to match at the provided price (%s)",
-                                    QuantityFormatter.formatNumber(-sellCount),
-                                    QuantityFormatter.formatNumber(inputPricePerItem)));
-                }
-                else if (inventoryCurrency < sellCount)
-                {
-                    PriceUtils.chatMessage(config.notifyNotEnough(),
-                            String.format("[Offer at Price] You don't have enough items (missing %s) to match at the provided price (%s)",
-                                    QuantityFormatter.formatNumber(sellCount-inventoryCurrency),
-                                    QuantityFormatter.formatNumber(inputPricePerItem)));
+                    if (sellCount < 0)
+                    {
+                        PriceUtils.chatMessage(config.notifyNeedToRemove(),
+                                String.format("[Offer at Price] You need to remove %s from your current offer to match at the provided price (%s)",
+                                        QuantityFormatter.formatNumber(-sellCount),
+                                        QuantityFormatter.formatNumber(inputPricePerItem)));
+                    }
+                    else if (inventoryCurrency < sellCount)
+                    {
+                        PriceUtils.chatMessage(config.notifyNotEnough(),
+                                String.format("[Offer at Price] You don't have enough items (missing %s) to match at the provided price (%s)",
+                                        QuantityFormatter.formatNumber(sellCount-inventoryCurrency),
+                                        QuantityFormatter.formatNumber(inputPricePerItem)));
+                    }
                 }
                 outNum = Math.max(0, Math.min(Integer.MAX_VALUE, sellCount));
             }
@@ -147,24 +150,28 @@ public class PriceKeyListener implements KeyListener
             final long alreadyOfferedCurrency = PriceUtils.getTotalCurrencyValue(InventoryID.TRADEOFFER);
             final long offerQuantity = inputPricePerItem * receivedQuantity - alreadyOfferedCurrency;
             final long inventoryQuantity = PriceUtils.getQuantity(InventoryID.INV, tradeCalculatorManager.getActiveItemID());
-            if (offerQuantity < 0)
+            if (printWarning)
             {
-                PriceUtils.chatMessage(config.notifyNeedToRemove(),
-                        String.format("[Offer at Price] You need to remove %sgp from your current offer to match at the provided price (%s)",
-                                QuantityFormatter.formatNumber(-offerQuantity),
-                                QuantityFormatter.formatNumber(inputPricePerItem)));
-            }
-            else if (inventoryQuantity < offerQuantity)
-            {
-                PriceUtils.chatMessage(config.notifyNotEnough(),
-                        String.format("[Offer at Price] You don't have enough coins (missing %s) to match at the provided price (%s)",
-                                QuantityFormatter.formatNumber(offerQuantity-inventoryQuantity),
-                                QuantityFormatter.formatNumber(inputPricePerItem)));
+                if (offerQuantity < 0)
+                {
+                    PriceUtils.chatMessage(config.notifyNeedToRemove(),
+                            String.format("[Offer at Price] You need to remove %sgp from your current offer to match at the provided price (%s)",
+                                    QuantityFormatter.formatNumber(-offerQuantity),
+                                    QuantityFormatter.formatNumber(inputPricePerItem)));
+                }
+                else if (inventoryQuantity < offerQuantity)
+                {
+                    PriceUtils.chatMessage(config.notifyNotEnough(),
+                            String.format("[Offer at Price] You don't have enough coins (missing %s) to match at the provided price (%s)",
+                                    QuantityFormatter.formatNumber(offerQuantity-inventoryQuantity),
+                                    QuantityFormatter.formatNumber(inputPricePerItem)));
+                }
             }
             outNum = Math.max(0, Math.min(offerQuantity, Integer.MAX_VALUE));
         }
         return outNum;
     }
+    private long getOutputQuantity() {return getOutputQuantity(false); }
 
     // Adapted from Decimal Prices
     private static final BigDecimal ONE_THOUSAND = new BigDecimal(1_000);
