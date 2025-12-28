@@ -123,7 +123,7 @@ public class PriceKeyListener implements KeyListener
                 final long receivedCurrency = PriceUtils.getTotalCurrencyValue(PriceUtils.TRADEOTHER);
                 final long alreadyOfferedItems = PriceUtils.getQuantity(InventoryID.TRADEOFFER, tradeCalculatorManager.getActiveItemID());
                 final long sellCount = config.defaultRoundingMethod().method.apply((float)receivedCurrency / (float)inputPricePerItem) - alreadyOfferedItems;
-                final long inventoryCurrency = PriceUtils.getTotalCurrencyValue(InventoryID.INV);
+                final long inventoryQuantity = PriceUtils.getQuantity(InventoryID.INV, tradeCalculatorManager.getActiveItemID());
                 if (printWarning)
                 {
                     if (sellCount < 0)
@@ -133,11 +133,11 @@ public class PriceKeyListener implements KeyListener
                                         QuantityFormatter.formatNumber(-sellCount),
                                         QuantityFormatter.formatNumber(inputPricePerItem)));
                     }
-                    else if (inventoryCurrency < sellCount)
+                    else if (inventoryQuantity < sellCount)
                     {
                         PriceUtils.chatMessage(config.notifyNotEnough(),
                                 String.format("[Offer at Price] You don't have enough items (missing %s) to match at the provided price (%s)",
-                                        QuantityFormatter.formatNumber(sellCount-inventoryCurrency),
+                                        QuantityFormatter.formatNumber(sellCount - inventoryQuantity),
                                         QuantityFormatter.formatNumber(inputPricePerItem)));
                     }
                 }
@@ -149,7 +149,7 @@ public class PriceKeyListener implements KeyListener
             final long receivedQuantity = PriceUtils.getQuantity(PriceUtils.TRADEOTHER, PriceUtils.getFirstItem(PriceUtils.TRADEOTHER));
             final long alreadyOfferedCurrency = PriceUtils.getTotalCurrencyValue(InventoryID.TRADEOFFER);
             final long offerQuantity = inputPricePerItem * receivedQuantity - alreadyOfferedCurrency;
-            final long inventoryQuantity = PriceUtils.getQuantity(InventoryID.INV, tradeCalculatorManager.getActiveItemID());
+            final long inventoryCurrency = PriceUtils.getTotalCurrencyValue(InventoryID.INV);
             if (printWarning)
             {
                 if (offerQuantity < 0)
@@ -159,11 +159,11 @@ public class PriceKeyListener implements KeyListener
                                     QuantityFormatter.formatNumber(-offerQuantity),
                                     QuantityFormatter.formatNumber(inputPricePerItem)));
                 }
-                else if (inventoryQuantity < offerQuantity)
+                else if (inventoryCurrency < offerQuantity)
                 {
                     PriceUtils.chatMessage(config.notifyNotEnough(),
                             String.format("[Offer at Price] You don't have enough coins (missing %s) to match at the provided price (%s)",
-                                    QuantityFormatter.formatNumber(offerQuantity-inventoryQuantity),
+                                    QuantityFormatter.formatNumber(offerQuantity - inventoryCurrency),
                                     QuantityFormatter.formatNumber(inputPricePerItem)));
                 }
             }
