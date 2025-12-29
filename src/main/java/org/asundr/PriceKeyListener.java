@@ -25,6 +25,7 @@
 
 package org.asundr;
 
+import lombok.AccessLevel;
 import lombok.Setter;
 import net.runelite.api.*;
 import net.runelite.api.events.GameTick;
@@ -53,6 +54,9 @@ public class PriceKeyListener implements KeyListener
     @Setter private Runnable onSubmitted;
     private String lastInputText;
 
+    @Setter(AccessLevel.PACKAGE)
+    private boolean active = false;
+
 
     public PriceKeyListener(final Client client, final ClientThread clientThread, final TradeCalculatorManager tradeCalculatorManager, final OfferAtPriceConfig config)
     {
@@ -65,6 +69,10 @@ public class PriceKeyListener implements KeyListener
     @Subscribe
     private void onGameTick(GameTick event)
     {
+        if (!active)
+        {
+            return;
+        }
         lastInputText = client.getVarcStrValue(VarClientID.MESLAYERINPUT).toLowerCase();
         final Widget promptWidget = client.getWidget(TradeCalculatorManager.WIDGET_ID_TEXT_ENTRY, TradeCalculatorManager.WIDGET_CHILD_ID_TEXT_ENTRY);
         if (promptWidget != null)
@@ -76,6 +84,10 @@ public class PriceKeyListener implements KeyListener
     @Override
     public void keyPressed(KeyEvent e)
     {
+        if (!active)
+        {
+            return;
+        }
         lastInputText = client.getVarcStrValue(VarClientID.MESLAYERINPUT).toLowerCase();
         if (e.getKeyCode() == KeyEvent.VK_ENTER)
         {

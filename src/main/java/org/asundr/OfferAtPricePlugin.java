@@ -70,6 +70,7 @@ public class OfferAtPricePlugin extends Plugin
 	protected void shutDown() throws Exception
 	{
 		eventBus.unregister(tradeCalculatorManager);
+		tradeCalculatorManager.shutDown();
 	}
 
 	@Provides

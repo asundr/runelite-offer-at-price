@@ -36,13 +36,17 @@ public class TradeCalculatorManager
     {
         TradeCalculatorManager.client = client;
         this.keyManager = keyManager;
-        this.priceKeyListener = new PriceKeyListener(client, clientThread, this, config);
         this.eventBus = eventBus;
-        this.priceKeyListener.setOnSubmitted( () ->
-        {
-            this.keyManager.unregisterKeyListener(this.priceKeyListener);
-            this.eventBus.unregister(this.priceKeyListener);
-        });
+        this.priceKeyListener = new PriceKeyListener(client, clientThread, this, config);
+        this.keyManager.registerKeyListener(this.priceKeyListener);
+        this.eventBus.register(this.priceKeyListener);
+        this.priceKeyListener.setOnSubmitted(() -> this.priceKeyListener.setActive(false));
+    }
+
+    public void shutDown()
+    {
+        this.keyManager.unregisterKeyListener(this.priceKeyListener);
+        this.eventBus.unregister(this.priceKeyListener);
     }
 
     @Subscribe
@@ -70,8 +74,7 @@ public class TradeCalculatorManager
     {
         if (event.getGroupId() == WIDGET_ID_TEXT_ENTRY)
         {
-            keyManager.unregisterKeyListener(priceKeyListener);
-            eventBus.unregister(priceKeyListener);
+            priceKeyListener.setActive(false);
         }
     }
 
@@ -107,8 +110,7 @@ public class TradeCalculatorManager
                 }
                 entry.setOption(TEXT_OFFER_PRICE_X);
                 entry.onClick(e -> {
-                    keyManager.registerKeyListener(priceKeyListener);
-                    eventBus.register(priceKeyListener);
+                    priceKeyListener.setActive(true);
                     Objects.requireNonNull(client.getWidget(WIDGET_ID_TEXT_ENTRY, WIDGET_CHILD_ID_TEXT_ENTRY)).setText("Enter a price:");
                 });
 
