@@ -28,7 +28,7 @@ package org.asundr;
 import lombok.AccessLevel;
 import lombok.Setter;
 import net.runelite.api.*;
-import net.runelite.api.events.GameTick;
+import net.runelite.api.events.ClientTick;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.gameval.VarClientID;
 import net.runelite.api.widgets.Widget;
@@ -67,7 +67,7 @@ public class PriceKeyListener implements KeyListener
     }
 
     @Subscribe
-    private void onGameTick(GameTick event)
+    private void onClientTick(ClientTick event)
     {
         if (!active)
         {
