@@ -38,6 +38,7 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.input.KeyManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.overlay.OverlayManager;
 
 @Slf4j
 @PluginDescriptor(
@@ -50,6 +51,7 @@ public class OfferAtPricePlugin extends Plugin
 	@Inject private Client client;
 	@Inject private ClientThread clientThread;
 	@Inject private OfferAtPriceConfig config;
+	@Inject private OverlayManager overlayManager;
 	@Inject private EventBus eventBus;
 	@Inject private KeyManager keyManager;
 	@Inject private ItemManager itemManager;
@@ -57,19 +59,25 @@ public class OfferAtPricePlugin extends Plugin
 	@Inject private Notifier notifier;
 
 	private TradeCalculatorManager tradeCalculatorManager;
+	private OverlayPricePerItem overlayPricePerItem;
 
 	@Override
 	protected void startUp() throws Exception
 	{
 		PriceUtils.initialize(client, itemManager, notifier, chatMessageManager);
 		tradeCalculatorManager = new TradeCalculatorManager(client, keyManager, clientThread, eventBus, config);
+		overlayPricePerItem = new OverlayPricePerItem(this, config, clientThread, client);
+		overlayManager.add(overlayPricePerItem);
 		eventBus.register(tradeCalculatorManager);
+		eventBus.register(overlayPricePerItem);
 	}
 
 	@Override
 	protected void shutDown() throws Exception
 	{
+		eventBus.unregister(overlayPricePerItem);
 		eventBus.unregister(tradeCalculatorManager);
+		overlayManager.remove(overlayPricePerItem);
 		tradeCalculatorManager.shutDown();
 	}
 

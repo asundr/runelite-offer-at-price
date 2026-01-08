@@ -53,4 +53,9 @@ public interface OfferAtPriceConfig extends Config
 			keyName = "notifyNotEnough", name = "Notify if not enough", description = "Send notification if you don't have enough items to match the other offer at the entered price"
 	)
 	default boolean notifyNotEnough() { return true; }
+
+	@ConfigItem(
+			keyName = "showPricePerItemOverlay", name = "Price per item overlay", description = "During trades of items for currency, will display the current price per item"
+	)
+	default boolean showPricePerItemOverlay() { return true; }
 }
