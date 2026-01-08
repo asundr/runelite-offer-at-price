@@ -66,7 +66,7 @@ public class OfferAtPricePlugin extends Plugin
 	{
 		PriceUtils.initialize(client, itemManager, notifier, chatMessageManager);
 		tradeCalculatorManager = new TradeCalculatorManager(client, keyManager, clientThread, eventBus, config);
-		overlayPricePerItem = new OverlayPricePerItem(this, config, clientThread, client);
+		overlayPricePerItem = new OverlayPricePerItem(config, clientThread, client);
 		overlayManager.add(overlayPricePerItem);
 		eventBus.register(tradeCalculatorManager);
 		eventBus.register(overlayPricePerItem);

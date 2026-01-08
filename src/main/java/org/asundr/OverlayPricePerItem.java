@@ -1,14 +1,13 @@
 package org.asundr;
 
 import net.runelite.api.Client;
-import net.runelite.api.events.ClientTick;
+import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.WidgetClosed;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.plugins.Plugin;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.components.TitleComponent;
@@ -23,14 +22,33 @@ public class OverlayPricePerItem extends OverlayPanel
         public static final int TRADE_MENU = 335;
         public static final int TRADE_CONFIRMATION_MENU = 334;
     }
+    private static final class TradeContainerId
+    {
+        public static final int GIVEN = InventoryID.TRADEOFFER;
+        public static final int RECEIVED = InventoryID.TRADEOFFER | 0x8000;
+    }
+    private enum TradeState
+    {
+        NOT_TRADING,
+        TRADE_OFFER,
+        TRADE_CONFIRM;
+    }
+
+    final private static int OFFSET_TRADE_OFFER = -10;
+    final private static int OFFSET_TRADE_CONFIRM = 5;
+    final private static String TEXT_NOT_SIMPLE = "Not a simple trade";
+    final private static String FORMAT_BUYING = "Buying at %s ea";
+    final private static String FORMAT_SELLING = "Selling at %s ea";
 
     private static OfferAtPriceConfig config;
     private static ClientThread clientThread;
     private static Client client;
-    private boolean isActive = false;
-    private Rectangle tradeWidgetBounds = new Rectangle(-1, -1);
 
-    OverlayPricePerItem(Plugin plugin, OfferAtPriceConfig config, ClientThread clientThread, Client client)
+    private TradeState tradeState = TradeState.NOT_TRADING;
+    private String warningString = "";
+
+
+    OverlayPricePerItem(OfferAtPriceConfig config, ClientThread clientThread, Client client)
     {
         OverlayPricePerItem.config = config;
         OverlayPricePerItem.clientThread = clientThread;
@@ -46,15 +64,15 @@ public class OverlayPricePerItem extends OverlayPanel
     {
         if (event.getGroupId() == TradeMenuId.TRADE_CONFIRMATION_MENU)
         {
-            isActive = false;
+            setTradeState(TradeState.NOT_TRADING);
         }
         else if (event.getGroupId() == TradeMenuId.TRADE_MENU)
         {
             clientThread.invokeLater(() -> {
-                final Widget widget = client.getWidget(TradeMenuId.TRADE_CONFIRMATION_MENU);
+                final Widget widget = client.getWidget(TradeMenuId.TRADE_CONFIRMATION_MENU, 0);
                 if (widget == null || widget.isHidden())
                 {
-                    isActive = false;
+                    setTradeState(TradeState.NOT_TRADING);
                 }
             });
         }
@@ -65,81 +83,99 @@ public class OverlayPricePerItem extends OverlayPanel
     {
         if (event.getGroupId() == TradeMenuId.TRADE_MENU)
         {
-            isActive = true;
+            updateWarningString();
+            setTradeState(TradeState.TRADE_OFFER);
+        }
+        else if (event.getGroupId() == TradeMenuId.TRADE_CONFIRMATION_MENU)
+        {
+            setTradeState(TradeState.TRADE_CONFIRM);
+        }
+    }
+
+    @Subscribe
+    private void onItemContainerChanged(ItemContainerChanged event)
+    {
+        if (tradeState != TradeState.TRADE_OFFER)
+        {
+            return;
+        }
+        switch (event.getContainerId())
+        {
+            case TradeContainerId.GIVEN: case TradeContainerId.RECEIVED:
+                updateWarningString();
         }
     }
 
     @Override
     public Dimension render(Graphics2D graphics)
     {
-        final Rectangle rect = updateTradeMenuLocation();
-
-        setPreferredLocation(new java.awt.Point((int)rect.getX() + (int)rect.width/2, (int)rect.getY() + (int)(rect.height)));
-
-        System.out.println(String.format("Widget location: %s, %s", rect.getX(), rect.getY()));
-
-        if (!isActive || !config.showPricePerItemOverlay())
+        if (!isTrading() || !config.showPricePerItemOverlay())
         {
-            final String warningString = "WARNING: NOT WEARING RING OF FORGING";
-            panelComponent.getChildren().add(TitleComponent.builder()
-                    .text(warningString)
-                    .color(Color.WHITE)
-                    .build());
-            panelComponent.setPreferredSize(new Dimension(
-                    graphics.getFontMetrics().stringWidth(warningString) + 10,
-                    50));
-            setPreferredLocation(new java.awt.Point((int)rect.getX() + (int)rect.width/2 - getBounds().width/2, 5 + (int)rect.getY() + (int)(rect.height)));
             return super.render(graphics);
         }
+        panelComponent.getChildren().add(TitleComponent.builder()
+                .text(warningString)
+                .color(config.colorOfPriceOverlay())
+                .build());
+        panelComponent.setPreferredSize(new Dimension(
+                graphics.getFontMetrics().stringWidth(warningString) + 10,
+                40));
+        final Rectangle rect = updateTradeMenuLocation();
+        final int yOffset = tradeState == TradeState.TRADE_OFFER ? OFFSET_TRADE_OFFER : OFFSET_TRADE_CONFIRM;
+        setPreferredLocation(new java.awt.Point((int)rect.getX() + rect.width/2 - getBounds().width/2, yOffset + (int)rect.getY() + rect.height));
+        return super.render(graphics);
+    }
 
-        // add price per item overlay
+    private static Rectangle updateTradeMenuLocation()
+    {
+        Widget w = client.getWidget(TradeMenuId.TRADE_MENU, 0);
+        if (w == null)
+        {
+            w = client.getWidget(TradeMenuId.TRADE_CONFIRMATION_MENU, 0);
+        }
+        if (w == null)
+        {
+            return  new Rectangle(-1, -1);
+        }
+        return w.getBounds();
+    }
+
+    private void setTradeState(TradeState tradeState)
+    {
+        this.tradeState = tradeState;
+        if (tradeState == TradeState.NOT_TRADING)
+        {
+            warningString = "";
+        }
+    }
+
+    private void updateWarningString()
+    {
         final boolean isGivenCurrency = PriceUtils.isCurrencyOnly(InventoryID.TRADEOFFER), isReceivedCurrency = PriceUtils.isCurrencyOnly(PriceUtils.TRADEOTHER);
-        String warningString = "";
         int currencyTradeId = 0, itemTradeId = 0;
         if (isGivenCurrency && !isReceivedCurrency && PriceUtils.hasOneTypeOfItem(PriceUtils.TRADEOTHER))
         {
             currencyTradeId = InventoryID.TRADEOFFER;
             itemTradeId = PriceUtils.TRADEOTHER;
-            warningString = "Buying at %s ea";
+            warningString = FORMAT_BUYING;
         }
         else if (isReceivedCurrency && !isGivenCurrency && PriceUtils.hasOneTypeOfItem(InventoryID.TRADEOFFER))
         {
             currencyTradeId = PriceUtils.TRADEOTHER;
             itemTradeId = InventoryID.TRADEOFFER;
-            warningString = "Selling at %s ea";
+            warningString = FORMAT_SELLING;
         }
         else
         {
-            //System.out.println(String.format("gCurr: %s | rCurr: %s | gOneType: %s | rOneType: %s", isGivenCurrency, isReceivedCurrency, PriceUtils.hasOneTypeOfItem(InventoryID.TRADEOFFER), PriceUtils.hasOneTypeOfItem(PriceUtils.TRADEOTHER)));
-            return null;
+            warningString = TEXT_NOT_SIMPLE;
         }
-
-        final int id = PriceUtils.getFirstItem(itemTradeId);
-        final float price = (float)PriceUtils.getTotalCurrencyValue(currencyTradeId) / (float)PriceUtils.getQuantity(itemTradeId, id);
-        warningString = String.format(warningString, price);
-        System.out.println(warningString);
-        panelComponent.getChildren().add(TitleComponent.builder()
-                .text(warningString)
-                .color(Color.WHITE)
-                .build());
-        panelComponent.setPreferredSize(new Dimension(
-                graphics.getFontMetrics().stringWidth(warningString) + 10,
-                50));
-        setPreferredLocation(new java.awt.Point((int)rect.getX() + (int)rect.width/2 - getBounds().width/2, 5 + (int)rect.getY() + (int)(rect.height)));
-        return super.render(graphics);
+        if (!warningString.equals(TEXT_NOT_SIMPLE))
+        {
+            final int id = PriceUtils.getFirstItem(itemTradeId);
+            final float price = (float)PriceUtils.getTotalCurrencyValue(currencyTradeId) / (float)PriceUtils.getQuantity(itemTradeId, id);
+            warningString = String.format(warningString, price);
+        }
     }
 
-    private Rectangle updateTradeMenuLocation()
-    {
-            Widget w = client.getWidget(TradeMenuId.TRADE_MENU, 0);
-            if (w == null)
-            {
-                w = client.getWidget(TradeMenuId.TRADE_CONFIRMATION_MENU, 0);
-            }
-            if (w == null)
-            {
-                return  new Rectangle(-1, -1);
-            }
-            return w.getBounds();
-    }
+    private boolean isTrading() { return tradeState != TradeState.NOT_TRADING; }
 }

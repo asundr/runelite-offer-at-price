@@ -29,6 +29,8 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
+import java.awt.*;
+
 @ConfigGroup(OfferAtPriceConfig.GROUP)
 public interface OfferAtPriceConfig extends Config
 {
@@ -58,4 +60,10 @@ public interface OfferAtPriceConfig extends Config
 			keyName = "showPricePerItemOverlay", name = "Price per item overlay", description = "During trades of items for currency, will display the current price per item"
 	)
 	default boolean showPricePerItemOverlay() { return true; }
+
+	@ConfigItem(
+			keyName = "colorOfPriceOverlay", name = "Price overlay color", description = "The color used for the text on the price per item overlay"
+	)
+	default Color colorOfPriceOverlay() { return new Color(0xB5, 0xE4, 0x93); }
+
 }
