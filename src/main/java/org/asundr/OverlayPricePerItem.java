@@ -8,6 +8,8 @@ import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.components.TitleComponent;
@@ -37,22 +39,25 @@ public class OverlayPricePerItem extends OverlayPanel
     final private static int OFFSET_TRADE_OFFER = -10;
     final private static int OFFSET_TRADE_CONFIRM = 5;
     final private static String TEXT_NOT_SIMPLE = "Not a simple trade";
-    final private static String FORMAT_BUYING = "Buying at %s ea";
-    final private static String FORMAT_SELLING = "Selling at %s ea";
+    final private static String FORMAT_BUYING = "Buying %sat %s ea";
+    final private static String FORMAT_SELLING = "Selling %sat %s ea";
 
     private static OfferAtPriceConfig config;
     private static ClientThread clientThread;
     private static Client client;
+    private static ItemManager itemManager;
 
     private TradeState tradeState = TradeState.NOT_TRADING;
     private String warningString = "";
+    private String itemName;
 
 
-    OverlayPricePerItem(OfferAtPriceConfig config, ClientThread clientThread, Client client)
+    OverlayPricePerItem(OfferAtPriceConfig config, ClientThread clientThread, Client client, ItemManager itemManager)
     {
         OverlayPricePerItem.config = config;
         OverlayPricePerItem.clientThread = clientThread;
         OverlayPricePerItem.client = client;
+        OverlayPricePerItem.itemManager = itemManager;
 
         setLayer(OverlayLayer.ALWAYS_ON_TOP);
         setPreferredColor(Color.GREEN);
@@ -106,6 +111,15 @@ public class OverlayPricePerItem extends OverlayPanel
         }
     }
 
+    @Subscribe
+    private void onConfigChanged(ConfigChanged event)
+    {
+        if (tradeState == TradeState.TRADE_OFFER)
+        {
+            clientThread.invoke(this::updateWarningString);
+        }
+    }
+
     @Override
     public Dimension render(Graphics2D graphics)
     {
@@ -146,6 +160,7 @@ public class OverlayPricePerItem extends OverlayPanel
         if (tradeState == TradeState.NOT_TRADING)
         {
             warningString = "";
+            itemName = "";
         }
     }
 
@@ -173,7 +188,13 @@ public class OverlayPricePerItem extends OverlayPanel
         {
             final int id = PriceUtils.getFirstItem(itemTradeId);
             final float price = (float)PriceUtils.getTotalCurrencyValue(currencyTradeId) / (float)PriceUtils.getQuantity(itemTradeId, id);
-            warningString = String.format(warningString, price);
+            if (config.showItemNameInOverlay())
+            {
+                clientThread.invoke(() -> {
+                    itemName = itemManager.getItemComposition(id).getMembersName();
+                });
+            }
+            warningString = String.format(warningString, config.showItemNameInOverlay() ? itemName + " " : "", price);
         }
     }
 

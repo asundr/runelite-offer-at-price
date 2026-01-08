@@ -89,4 +89,9 @@ public interface OfferAtPriceConfig extends Config
 	)
 	default Color colorOfPriceOverlay() { return new Color(0xB5, 0xE4, 0x93); }
 
+	@ConfigItem(
+			keyName = "showItemNameInOverlay", name = "Show item name in overlay", description = "When showing the price per item overlay include the name of the item being traded",
+			section = SECTION_OVERLAY
+	)
+	default boolean showItemNameInOverlay() { return false; }
 }
