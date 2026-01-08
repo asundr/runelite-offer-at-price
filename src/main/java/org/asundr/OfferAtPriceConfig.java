@@ -28,6 +28,7 @@ package org.asundr;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.ConfigSection;
 
 import java.awt.*;
 
@@ -36,10 +37,28 @@ public interface OfferAtPriceConfig extends Config
 {
 	String GROUP = "OfferAtPrice";
 
+	@ConfigSection(
+			name = "General", description = "General settings", position = 0
+	)
+	String SECTION_GENERAL = "general";
+
+	@ConfigSection(
+			name = "Overlay", description = "Overlay during trades", position = 1
+	)
+	String SECTION_OVERLAY = "overlay";
+
+	@ConfigSection(
+			name = "Notifications", description = "Notifications for warnings when offering at price", position = 3
+	)
+	String SECTION_NOTIFICATIONS = "notifications";
+
+	///////////
+
 	@ConfigItem(
 		keyName = "defaultRoundingMethod",
 		name = "Rounding Method",
-		description = "When offering items at a price the total value of your items may not match\nthe other player's offer exactly. This determines how your item count is rounded in this case."
+		description = "When offering items at a price the total value of your items may not match\nthe other player's offer exactly. This determines how your item count is rounded in this case.",
+		section = SECTION_GENERAL
 	)
 	default RoundingRule defaultRoundingMethod()
 	{
@@ -47,22 +66,26 @@ public interface OfferAtPriceConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "notifyNeedToRemove", name = "Notify if need to remove", description = "Send notification if you need to remove items from what has been offered at entered price"
+			keyName = "notifyNeedToRemove", name = "Notify if need to remove", description = "Send notification if you need to remove items from what has been offered at entered price",
+			section = SECTION_NOTIFICATIONS
 	)
 	default boolean notifyNeedToRemove() { return true; }
 
 	@ConfigItem(
-			keyName = "notifyNotEnough", name = "Notify if not enough", description = "Send notification if you don't have enough items to match the other offer at the entered price"
+			keyName = "notifyNotEnough", name = "Notify if not enough", description = "Send notification if you don't have enough items to match the other offer at the entered price",
+			section = SECTION_NOTIFICATIONS
 	)
 	default boolean notifyNotEnough() { return true; }
 
 	@ConfigItem(
-			keyName = "showPricePerItemOverlay", name = "Price per item overlay", description = "During trades of items for currency, will display the current price per item"
+			keyName = "showPricePerItemOverlay", name = "Enable price per item overlay", description = "During trades of items for currency, will display the current price per item",
+			section = SECTION_OVERLAY, position = -10
 	)
 	default boolean showPricePerItemOverlay() { return true; }
 
 	@ConfigItem(
-			keyName = "colorOfPriceOverlay", name = "Price overlay color", description = "The color used for the text on the price per item overlay"
+			keyName = "colorOfPriceOverlay", name = "Price overlay color", description = "The color used for the text on the price per item overlay",
+			section = SECTION_OVERLAY
 	)
 	default Color colorOfPriceOverlay() { return new Color(0xB5, 0xE4, 0x93); }
 
