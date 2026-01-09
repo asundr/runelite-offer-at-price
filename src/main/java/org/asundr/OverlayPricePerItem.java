@@ -126,7 +126,11 @@ public class OverlayPricePerItem extends OverlayPanel
     {
         if (!isTrading() || !config.showPricePerItemOverlay())
         {
-            return super.render(graphics);
+            return null;
+        }
+        if (config.hideOverlayForInvalid() && warningString.equals(TEXT_NOT_SIMPLE))
+        {
+            return null;
         }
         panelComponent.getChildren().add(TitleComponent.builder()
                 .text(warningString)

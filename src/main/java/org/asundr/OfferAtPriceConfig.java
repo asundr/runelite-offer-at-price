@@ -78,10 +78,22 @@ public interface OfferAtPriceConfig extends Config
 	default boolean notifyNotEnough() { return true; }
 
 	@ConfigItem(
+			keyName = "hideOverlayForInvalid", name = "Hide overlay if invalid", description = "Hide overlay if not a 'simple trade' of currency for a single item type",
+			section = SECTION_OVERLAY, position = -9
+	)
+	default boolean hideOverlayForInvalid() { return false; }
+
+	@ConfigItem(
 			keyName = "showPricePerItemOverlay", name = "Enable price per item overlay", description = "During trades of items for currency, will display the current price per item",
 			section = SECTION_OVERLAY, position = -10
 	)
 	default boolean showPricePerItemOverlay() { return true; }
+
+	@ConfigItem(
+			keyName = "showItemNameInOverlay", name = "Show item name in overlay", description = "When showing the price per item overlay include the name of the item being traded",
+			section = SECTION_OVERLAY
+	)
+	default boolean showItemNameInOverlay() { return false; }
 
 	@ConfigItem(
 			keyName = "colorOfPriceOverlay", name = "Price overlay color", description = "The color used for the text on the price per item overlay",
@@ -89,9 +101,4 @@ public interface OfferAtPriceConfig extends Config
 	)
 	default Color colorOfPriceOverlay() { return new Color(0xB5, 0xE4, 0x93); }
 
-	@ConfigItem(
-			keyName = "showItemNameInOverlay", name = "Show item name in overlay", description = "When showing the price per item overlay include the name of the item being traded",
-			section = SECTION_OVERLAY
-	)
-	default boolean showItemNameInOverlay() { return false; }
 }
