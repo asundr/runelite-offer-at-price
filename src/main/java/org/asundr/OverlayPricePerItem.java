@@ -13,6 +13,7 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.components.TitleComponent;
+import net.runelite.client.util.QuantityFormatter;
 
 import java.awt.*;
 
@@ -194,7 +195,7 @@ public class OverlayPricePerItem extends OverlayPanel
                     itemName = itemManager.getItemComposition(id).getMembersName();
                 });
             }
-            warningString = String.format(warningString, config.showItemNameInOverlay() ? itemName + " " : "", price);
+            warningString = String.format(warningString, config.showItemNameInOverlay() ? itemName + " " : "", QuantityFormatter.formatNumber(price));
         }
     }
 
