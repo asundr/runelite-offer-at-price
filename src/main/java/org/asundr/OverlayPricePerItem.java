@@ -36,8 +36,8 @@ public class OverlayPricePerItem extends OverlayPanel
         TRADE_CONFIRM;
     }
 
-    final private static int OFFSET_TRADE_OFFER = -10;
-    final private static int OFFSET_TRADE_CONFIRM = 5;
+    final private static int OFFSET_TRADE_OFFER = -52;
+    final private static int OFFSET_TRADE_CONFIRM = -4;
     final private static String TEXT_NOT_SIMPLE = "Not a simple trade";
     final private static String FORMAT_BUYING = "Buying %sat %s ea";
     final private static String FORMAT_SELLING = "Selling %sat %s ea";
