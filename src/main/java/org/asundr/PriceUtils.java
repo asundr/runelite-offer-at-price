@@ -176,7 +176,7 @@ public class PriceUtils
         return sum;
     }
 
-    // Analyzes the trade and returns whether the plays is selling one type of item, buying one type of item or is more complex (INVALID)
+    // Analyzes the trade and returns whether the players is selling one type of item, buying one type of item or is more complex (INVALID)
     public static OfferType getOfferType(final int itemId)
     {
         final boolean offerCurrency = isCurrency(itemId);

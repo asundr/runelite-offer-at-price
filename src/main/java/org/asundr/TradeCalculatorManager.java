@@ -22,7 +22,7 @@ public class TradeCalculatorManager
     public static final int WIDGET_CHILD_ID_TEXT_ENTRY = 42;
     public static final int TRADE_MENU = 335;
     public static final String TEXT_OFFER_X = "Offer-X";
-    public static final String TEXT_OFFER_PRICE_X = "Offer Price X";
+    public static final String TEXT_OFFER_PRICE_X = "Offer-Price-X";
 
     private static Client client;
     private final KeyManager keyManager;
@@ -91,7 +91,6 @@ public class TradeCalculatorManager
                 return;
             }
             final int group = WidgetUtil.componentToInterface(w.getId());
-//            final boolean isValidSource = group == InterfaceID.TRADESIDE; // || group == InterfaceID.INVENTORY || group == InterfaceID.EQUIPMENT || group == InterfaceID.TRADEMAIN;
             if (group == InterfaceID.TRADESIDE && TEXT_OFFER_X.equals(PriceUtils.sanitizeWidgetText(entry.getOption())) && entry.getIdentifier() == 5)
             {
                 activeItemID = PriceUtils.getItemIdFromWidget(w);
