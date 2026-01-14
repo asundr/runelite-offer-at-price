@@ -49,7 +49,7 @@ public class OverlayPricePerItem extends OverlayPanel
     private static ItemManager itemManager;
 
     private TradeState tradeState = TradeState.NOT_TRADING;
-    private String warningString = "";
+    private String priceText = "";
     private String itemName;
 
 
@@ -128,16 +128,16 @@ public class OverlayPricePerItem extends OverlayPanel
         {
             return null;
         }
-        if (config.hideOverlayForInvalid() && warningString.equals(TEXT_NOT_SIMPLE))
+        if (config.hideOverlayForInvalid() && priceText.equals(TEXT_NOT_SIMPLE))
         {
             return null;
         }
         panelComponent.getChildren().add(TitleComponent.builder()
-                .text(warningString)
+                .text(priceText)
                 .color(config.colorOfPriceOverlay())
                 .build());
         panelComponent.setPreferredSize(new Dimension(
-                graphics.getFontMetrics().stringWidth(warningString) + 10,
+                graphics.getFontMetrics().stringWidth(priceText) + 10,
                 40));
         final Rectangle rect = updateTradeMenuLocation();
         final int yOffset = tradeState == TradeState.TRADE_OFFER ? OFFSET_TRADE_OFFER : OFFSET_TRADE_CONFIRM;
@@ -164,7 +164,7 @@ public class OverlayPricePerItem extends OverlayPanel
         this.tradeState = tradeState;
         if (tradeState == TradeState.NOT_TRADING)
         {
-            warningString = "";
+            priceText = "";
             itemName = "";
         }
     }
@@ -177,29 +177,30 @@ public class OverlayPricePerItem extends OverlayPanel
         {
             currencyTradeId = InventoryID.TRADEOFFER;
             itemTradeId = PriceUtils.TRADEOTHER;
-            warningString = FORMAT_BUYING;
+            priceText = FORMAT_BUYING;
         }
         else if (isReceivedCurrency && !isGivenCurrency && PriceUtils.hasOneTypeOfItem(InventoryID.TRADEOFFER))
         {
             currencyTradeId = PriceUtils.TRADEOTHER;
             itemTradeId = InventoryID.TRADEOFFER;
-            warningString = FORMAT_SELLING;
+            priceText = FORMAT_SELLING;
         }
         else
         {
-            warningString = TEXT_NOT_SIMPLE;
+            priceText = TEXT_NOT_SIMPLE;
         }
-        if (!warningString.equals(TEXT_NOT_SIMPLE))
+        if (!priceText.equals(TEXT_NOT_SIMPLE))
         {
             final int id = PriceUtils.getFirstItem(itemTradeId);
-            final float price = (float)PriceUtils.getTotalCurrencyValue(currencyTradeId) / (float)PriceUtils.getQuantity(itemTradeId, id);
+            float price = (float)PriceUtils.getTotalCurrencyValue(currencyTradeId) / (float)PriceUtils.getQuantity(itemTradeId, id);
+            price = price < 100f ? Math.round(1000*price)/1000.f : price < 10000 ? Math.round(10*price)/10.f : Math.round(price);
             if (config.showItemNameInOverlay())
             {
                 clientThread.invoke(() -> {
                     itemName = itemManager.getItemComposition(id).getMembersName();
                 });
             }
-            warningString = String.format(warningString, config.showItemNameInOverlay() ? itemName + " " : "", QuantityFormatter.formatNumber(price));
+            priceText = String.format(priceText, config.showItemNameInOverlay() ? itemName + " " : "", QuantityFormatter.formatNumber(price));
         }
     }
 
