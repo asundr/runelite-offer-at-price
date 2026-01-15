@@ -38,7 +38,6 @@ Additionally shows current price per item overlay during trades.
 - When offering items, it's possible that the price won't divide perfectly into the coins offered by the other player. A config option is provided to determine if this value should be rounded up, down or to nearest.
 - This plugin is intended for simple trades of one type of item for currency and doesn't support multiple item types.
 - There is _limited_ support for receiving payments with platinum chips but offers must be made with coins.
-
 <hr>
 
 ### My RuneLite plugins
@@ -46,3 +45,5 @@ Additionally shows current price per item overlay during trades.
 - [Offer at Price](https://runelite.net/plugin-hub/show/offer-at-price) - SHIFT-right click an item to offer a matching quantity for a provided price
 - [Smithing MisClick Prevention](https://runelite.net/plugin-hub/show/offer-at-price) - Prevents accidentally clicking on unintended items in the smithing menu
 - [Ring of Forging Helper](https://runelite.net/plugin-hub/show/ring-of-forging-helper) - Provides customizable feedback to make smithing with the Ring of Forging more afk
+- [Chat Space Blocker](https://runelite.net/plugin-hub/show/chat-space-blocker) - Prevents players from entering spaces as the first character of chat input
+
