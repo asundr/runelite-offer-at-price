@@ -43,8 +43,8 @@ import net.runelite.client.ui.overlay.OverlayManager;
 @Slf4j
 @PluginDescriptor(
 	name = "Offer at Price",
-	description = "SHIFT-right click an item to offer a matching quantity for a provided price",
-	tags = {"trade", "auto", "calc", "calculate", "value"}
+	description = "SHIFT-right click an item to offer a matching quantity for a provided price. Also displays current price overlay.",
+	tags = {"trade", "auto", "calc", "calculate", "value", "scam", "protection"}
 )
 public class OfferAtPricePlugin extends Plugin
 {
