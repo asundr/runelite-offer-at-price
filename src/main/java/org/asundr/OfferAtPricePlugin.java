@@ -59,25 +59,21 @@ public class OfferAtPricePlugin extends Plugin
 	@Inject private Notifier notifier;
 
 	private TradeCalculatorManager tradeCalculatorManager;
-	private OverlayPricePerItem overlayPricePerItem;
+	private OfferManager offerManager;
 
 	@Override
 	protected void startUp() throws Exception
 	{
 		PriceUtils.initialize(client, itemManager, notifier, chatMessageManager);
 		tradeCalculatorManager = new TradeCalculatorManager(client, keyManager, clientThread, eventBus, config);
-		overlayPricePerItem = new OverlayPricePerItem(config, clientThread, client, itemManager);
-		overlayManager.add(overlayPricePerItem);
+		offerManager = new OfferManager(config, client, clientThread, eventBus, overlayManager, itemManager);
 		eventBus.register(tradeCalculatorManager);
-		eventBus.register(overlayPricePerItem);
 	}
 
 	@Override
 	protected void shutDown() throws Exception
 	{
-		eventBus.unregister(overlayPricePerItem);
-		eventBus.unregister(tradeCalculatorManager);
-		overlayManager.remove(overlayPricePerItem);
+		offerManager.shutdown();
 		tradeCalculatorManager.shutDown();
 	}
 
