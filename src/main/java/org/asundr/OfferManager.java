@@ -46,7 +46,7 @@ public class OfferManager
     {
         int itemId = -1;
         int inputPrice = 0;
-        float price = 0f;
+        double price = 0d;
         long priceDifference = 0L;
     }
 
@@ -181,7 +181,7 @@ public class OfferManager
             final int id = PriceUtils.getFirstItem(itemTradeId);
             final long totalCurrency = PriceUtils.getTotalCurrencyValue(currencyTradeId);
             final long totalItemQuantity = PriceUtils.getQuantity(itemTradeId, id);
-            offerInfo.price = (float)totalCurrency / (float)totalItemQuantity;
+            offerInfo.price = (double)totalCurrency / (double)totalItemQuantity;
             if (offerInfo.inputPrice != 0)
             {
                 offerInfo.priceDifference = offerInfo.inputPrice * totalItemQuantity - totalCurrency;

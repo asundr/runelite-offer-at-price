@@ -87,8 +87,8 @@ public class OverlayPricePerItem extends OverlayPanel
         if (OfferManager.getTradeType() != OfferManager.TradeType.INVALID)
         {
             final OfferManager.OfferInfo tradeInfo = OfferManager.getOfferInfo();
-            float price = tradeInfo.price;
-            price = price < 100f ? Math.round(1000*price)/1000.f : price < 10000 ? Math.round(10*price)/10.f : Math.round(price);
+            double price = tradeInfo.price;
+            price = price < 100d ? Math.round(1000d*price)/1000d : price < 1000d ? Math.round(10d*price)/10d : Math.round(price);
             if (config.showItemNameInOverlay())
             {
                 clientThread.invoke(() -> {

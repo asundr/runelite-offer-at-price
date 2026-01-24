@@ -135,7 +135,7 @@ public class PriceKeyListener implements KeyListener
             {
                 final long receivedCurrency = PriceUtils.getTotalCurrencyValue(PriceUtils.TRADEOTHER);
                 final long alreadyOfferedItems = PriceUtils.getQuantity(InventoryID.TRADEOFFER, tradeCalculatorManager.getActiveItemID());
-                final long sellCount = config.defaultRoundingMethod().method.apply((float)receivedCurrency / (float)inputPricePerItem) - alreadyOfferedItems;
+                final long sellCount = config.defaultRoundingMethod().method.apply((double)receivedCurrency / (double)inputPricePerItem) - alreadyOfferedItems;
                 final long inventoryQuantity = PriceUtils.getQuantity(InventoryID.INV, tradeCalculatorManager.getActiveItemID());
                 if (printWarning)
                 {
