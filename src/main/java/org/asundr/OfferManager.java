@@ -45,8 +45,9 @@ public class OfferManager
     static class OfferInfo
     {
         int itemId = -1;
+        int inputPrice = 0;
         float price = 0f;
-        long priceDifference;
+        long priceDifference = 0L;
     }
 
     static class EventTradeStateChanged
@@ -74,6 +75,7 @@ public class OfferManager
     private static OfferInfo offerInfo = new OfferInfo();
 
     private static OverlayPricePerItem overlayPricePerItem;
+    private static OverlayPriceDifference overlayPriceDifference;
 
 
     OfferManager(OfferAtPriceConfig config, Client client, ClientThread clientThread, EventBus eventBus, OverlayManager overlayManager, ItemManager itemManager)
@@ -83,13 +85,16 @@ public class OfferManager
         OfferManager.eventBus = eventBus;
         OfferManager.overlayManager = overlayManager;
         overlayPricePerItem = new OverlayPricePerItem(config, clientThread, itemManager);
+        overlayPriceDifference = new OverlayPriceDifference(config);
         eventBus.register(this);
         eventBus.register(overlayPricePerItem);
         overlayManager.add(overlayPricePerItem);
+        overlayManager.add(overlayPriceDifference);
     }
 
     public void shutdown()
     {
+        overlayManager.remove(overlayPriceDifference);
         overlayManager.remove(overlayPricePerItem);
         eventBus.unregister(overlayPricePerItem);
         eventBus.unregister(this);
@@ -177,6 +182,10 @@ public class OfferManager
             final long totalCurrency = PriceUtils.getTotalCurrencyValue(currencyTradeId);
             final long totalItemQuantity = PriceUtils.getQuantity(itemTradeId, id);
             offerInfo.price = (float)totalCurrency / (float)totalItemQuantity;
+            if (offerInfo.inputPrice != 0)
+            {
+                offerInfo.priceDifference = offerInfo.inputPrice * totalItemQuantity - totalCurrency;
+            }
         }
     }
 
@@ -209,6 +218,11 @@ public class OfferManager
             return  new Rectangle(-1, -1);
         }
         return w.getBounds();
+    }
+
+    public static void setInputPrice(final int inputPrice)
+    {
+        offerInfo.inputPrice = inputPrice;
     }
 
 }

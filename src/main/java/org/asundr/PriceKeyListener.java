@@ -127,6 +127,7 @@ public class PriceKeyListener implements KeyListener
             return 0;
         }
         final int inputPricePerItem = Math.max(0, Integer.parseInt(transformedPrice));
+        OfferManager.setInputPrice(inputPricePerItem);
         long outNum = 0;
         if (offertype == OfferType.SELL)
         {

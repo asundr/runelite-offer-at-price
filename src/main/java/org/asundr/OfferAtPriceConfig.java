@@ -101,4 +101,15 @@ public interface OfferAtPriceConfig extends Config
 	)
 	default Color colorOfPriceOverlay() { return new Color(0xB5, 0xE4, 0x93); }
 
+	@ConfigItem(
+			keyName = "showPriceDifference", name = "Enable price difference overlay", description = "Shows the current price difference for the entered price",
+			section = SECTION_OVERLAY
+	)
+	default boolean showPriceDifference() { return true; }
+
+	@ConfigItem(
+			keyName = "colorOfDifferenceOverlay", name = "Difference overlay color", description = "The color used for the text on the price difference overlay",
+			section = SECTION_OVERLAY
+	)
+	default Color colorOfDifferenceOverlay() { return new Color(0xB5, 0xE4, 0x93); }
 }

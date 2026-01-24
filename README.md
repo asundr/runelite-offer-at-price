@@ -1,7 +1,7 @@
 # [Offer at Price](https://runelite.net/plugin-hub/show/offer-at-price)
 
 This RuneLite plugin provides the player with a way to match a trade offer by providing a price per item.
-Additionally shows current price per item overlay during trades.
+Additionally shows current price per item overlay during trades and an overlay for how much over or under a trade is from perfectly matching the provided price.
 
 ![image](https://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/installs/plugin/offer-at-price)
 ![image](https://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/rank/plugin/offer-at-price)
