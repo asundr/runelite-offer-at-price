@@ -2,19 +2,26 @@ package org.asundr;
 
 import lombok.Getter;
 import net.runelite.api.Client;
+import net.runelite.api.KeyCode;
+import net.runelite.api.MenuEntry;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.WidgetClosed;
 import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.widgets.Widget;
+import net.runelite.api.widgets.WidgetUtil;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.input.KeyManager;
 import net.runelite.client.ui.overlay.OverlayManager;
 
 import java.awt.*;
+import java.util.Objects;
 
 public class OfferManager
 {
@@ -33,13 +40,6 @@ public class OfferManager
         NOT_TRADING,
         TRADE_OFFER,
         TRADE_CONFIRM;
-    }
-
-    enum TradeType
-    {
-        INVALID,
-        SELLING,
-        BUYING
     }
 
     static class OfferInfo
@@ -61,11 +61,16 @@ public class OfferManager
         }
     }
 
-    //private static OfferAtPriceConfig config;
+    static final int WIDGET_ID_TEXT_ENTRY = 162;
+    static final int WIDGET_CHILD_ID_TEXT_ENTRY = 42;
+    private static final String TEXT_OFFER_X = "Offer-X";
+    private static final String TEXT_OFFER_PRICE_X = "Offer-Price-X";
+
     private static Client client;
     private static ClientThread clientThread;
     private static EventBus eventBus;
     private static OverlayManager overlayManager;
+    private static KeyManager keyManager;
 
     @Getter
     private static TradeState tradeState = TradeState.NOT_TRADING;
@@ -73,17 +78,31 @@ public class OfferManager
     private static TradeType tradeType = TradeType.INVALID;
     @Getter
     private static OfferInfo offerInfo = new OfferInfo();
+    private final PriceKeyListener priceKeyListener;
+
+    @Getter
+    private int activeItemID = -1;
+    @Getter
+    private TradeType activeOfferType = TradeType.INVALID;
+
 
     private static OverlayPricePerItem overlayPricePerItem;
     private static OverlayPriceDifference overlayPriceDifference;
 
 
-    OfferManager(OfferAtPriceConfig config, Client client, ClientThread clientThread, EventBus eventBus, OverlayManager overlayManager, ItemManager itemManager)
+    OfferManager(OfferAtPriceConfig config, Client client, ClientThread clientThread, EventBus eventBus, OverlayManager overlayManager, KeyManager keyManager, ItemManager itemManager)
     {
         OfferManager.client = client;
         OfferManager.clientThread = clientThread;
         OfferManager.eventBus = eventBus;
         OfferManager.overlayManager = overlayManager;
+        OfferManager.keyManager = keyManager;
+
+        this.priceKeyListener = new PriceKeyListener(client, clientThread, this, config);
+        keyManager.registerKeyListener(this.priceKeyListener);
+        eventBus.register(this.priceKeyListener);
+        this.priceKeyListener.setOnSubmitted(() -> this.priceKeyListener.setActive(false));
+
         overlayPricePerItem = new OverlayPricePerItem(config, clientThread, itemManager);
         overlayPriceDifference = new OverlayPriceDifference(config);
         eventBus.register(this);
@@ -94,6 +113,9 @@ public class OfferManager
 
     public void shutdown()
     {
+        keyManager.unregisterKeyListener(this.priceKeyListener);
+        eventBus.unregister(this.priceKeyListener);
+
         overlayManager.remove(overlayPriceDifference);
         overlayManager.remove(overlayPricePerItem);
         eventBus.unregister(overlayPricePerItem);
@@ -106,6 +128,9 @@ public class OfferManager
         if (event.getGroupId() == TradeMenuId.TRADE_MENU)
         {
             updateTradeData();
+            PriceUtils.updateNotedIds(InventoryID.INV);
+            PriceUtils.updateNotedIds(InventoryID.TRADEOFFER);
+            PriceUtils.updateNotedIds(PriceUtils.TRADEOTHER);
             setTradeState(TradeState.TRADE_OFFER);
         }
         else if (event.getGroupId() == TradeMenuId.TRADE_CONFIRMATION_MENU)
@@ -131,6 +156,10 @@ public class OfferManager
                 }
             });
         }
+        else if (event.getGroupId() == WIDGET_ID_TEXT_ENTRY)
+        {
+            priceKeyListener.setActive(false);
+        }
     }
 
     @Subscribe
@@ -142,8 +171,13 @@ public class OfferManager
         }
         switch (event.getContainerId())
         {
-            case TradeContainerId.GIVEN: case TradeContainerId.RECEIVED:
-            updateTradeData();
+            case TradeContainerId.RECEIVED:
+                PriceUtils.updateNotedIds(PriceUtils.TRADEOTHER);
+                updateTradeData();
+                break;
+            case TradeContainerId.GIVEN:
+                updateTradeData();
+                break;
         }
     }
 
@@ -153,6 +187,45 @@ public class OfferManager
         if (tradeState == TradeState.TRADE_OFFER)
         {
             clientThread.invoke(this::updateTradeData);
+        }
+    }
+
+    @Subscribe
+    private void onMenuOpened(final MenuOpened event)
+    {
+        final MenuEntry[] entries = event.getMenuEntries();
+        for (int idx = entries.length -1; idx >= 0; --idx)
+        {
+            final MenuEntry entry = entries[idx];
+            final Widget w = entry.getWidget();
+            if (w == null)
+            {
+                return;
+            }
+            final int group = WidgetUtil.componentToInterface(w.getId());
+            if (group == InterfaceID.TRADESIDE && TEXT_OFFER_X.equals(PriceUtils.sanitizeWidgetText(entry.getOption())) && entry.getIdentifier() == 5)
+            {
+                activeItemID = PriceUtils.getItemIdFromWidget(w);
+                if (activeItemID == -1)
+                {
+                    return;
+                }
+                if (!client.isKeyPressed(KeyCode.KC_SHIFT))
+                {
+                    return;
+                }
+                activeOfferType = PriceUtils.getOfferType(activeItemID);
+                if (activeOfferType == TradeType.INVALID)
+                {
+                    return;
+                }
+                entry.setOption(TEXT_OFFER_PRICE_X);
+                entry.onClick(e -> {
+                    priceKeyListener.setActive(true);
+                    Objects.requireNonNull(client.getWidget(WIDGET_ID_TEXT_ENTRY, WIDGET_CHILD_ID_TEXT_ENTRY)).setText("Enter a price:");
+                });
+
+            }
         }
     }
 

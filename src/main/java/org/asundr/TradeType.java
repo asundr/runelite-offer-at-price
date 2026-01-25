@@ -25,9 +25,9 @@
 
 package org.asundr;
 
-public enum OfferType
+public enum TradeType
 {
     INVALID,
-    BUY,
-    SELL;
+    BUYING,
+    SELLING;
 }

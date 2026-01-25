@@ -55,7 +55,7 @@ public class OverlayPricePerItem extends OverlayPanel
         {
             return null;
         }
-        if (config.hideOverlayForInvalid() && OfferManager.getTradeType() == OfferManager.TradeType.INVALID)
+        if (config.hideOverlayForInvalid() && OfferManager.getTradeType() == TradeType.INVALID)
         {
             return null;
         }
@@ -84,7 +84,7 @@ public class OverlayPricePerItem extends OverlayPanel
             case INVALID:
                 priceText = TEXT_NOT_SIMPLE; break;
         }
-        if (OfferManager.getTradeType() != OfferManager.TradeType.INVALID)
+        if (OfferManager.getTradeType() != TradeType.INVALID)
         {
             final OfferManager.OfferInfo tradeInfo = OfferManager.getOfferInfo();
             double price = tradeInfo.price;

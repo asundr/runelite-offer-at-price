@@ -49,7 +49,7 @@ public class PriceKeyListener implements KeyListener
     private final ClientThread clientThread;
     private final OfferAtPriceConfig config;
 
-    private final TradeCalculatorManager tradeCalculatorManager;
+    private final OfferManager offerManager;
 
     @Setter private Runnable onSubmitted;
     private String lastInputText;
@@ -58,12 +58,12 @@ public class PriceKeyListener implements KeyListener
     private boolean active = false;
 
 
-    public PriceKeyListener(final Client client, final ClientThread clientThread, final TradeCalculatorManager tradeCalculatorManager, final OfferAtPriceConfig config)
+    public PriceKeyListener(final Client client, final ClientThread clientThread, final OfferManager offerManager, final OfferAtPriceConfig config)
     {
         this.client = client;
         this.clientThread = clientThread;
         this.config = config;
-        this.tradeCalculatorManager = tradeCalculatorManager;
+        this.offerManager = offerManager;
     }
 
     @Subscribe
@@ -74,7 +74,7 @@ public class PriceKeyListener implements KeyListener
             return;
         }
         lastInputText = client.getVarcStrValue(VarClientID.MESLAYERINPUT).toLowerCase();
-        final Widget promptWidget = client.getWidget(TradeCalculatorManager.WIDGET_ID_TEXT_ENTRY, TradeCalculatorManager.WIDGET_CHILD_ID_TEXT_ENTRY);
+        final Widget promptWidget = client.getWidget(OfferManager.WIDGET_ID_TEXT_ENTRY, OfferManager.WIDGET_CHILD_ID_TEXT_ENTRY);
         if (promptWidget != null)
         {
             promptWidget.setText(String.format(TEMPLATE_PRICE_PROMPT, getOutputQuantity()));
@@ -95,7 +95,7 @@ public class PriceKeyListener implements KeyListener
         }
         else
         {
-            Objects.requireNonNull(client.getWidget(TradeCalculatorManager.WIDGET_ID_TEXT_ENTRY, TradeCalculatorManager.WIDGET_CHILD_ID_TEXT_ENTRY))
+            Objects.requireNonNull(client.getWidget(OfferManager.WIDGET_ID_TEXT_ENTRY, OfferManager.WIDGET_CHILD_ID_TEXT_ENTRY))
                     .setText(String.format(TEMPLATE_PRICE_PROMPT, "..."));
         }
     }
@@ -121,22 +121,22 @@ public class PriceKeyListener implements KeyListener
             return 0;
         }
         final String transformedPrice = transformDecimalPrice(inputText);
-        final OfferType offertype = PriceUtils.getOfferType(tradeCalculatorManager.getActiveItemID());
-        if (offertype == OfferType.INVALID)
+        final TradeType offertype = PriceUtils.getOfferType(offerManager.getActiveItemID());
+        if (offertype == TradeType.INVALID)
         {
             return 0;
         }
         final int inputPricePerItem = Math.max(0, Integer.parseInt(transformedPrice));
         OfferManager.setInputPrice(inputPricePerItem);
         long outNum = 0;
-        if (offertype == OfferType.SELL)
+        if (offertype == TradeType.SELLING)
         {
             if (inputPricePerItem != 0)
             {
                 final long receivedCurrency = PriceUtils.getTotalCurrencyValue(PriceUtils.TRADEOTHER);
-                final long alreadyOfferedItems = PriceUtils.getQuantity(InventoryID.TRADEOFFER, tradeCalculatorManager.getActiveItemID());
+                final long alreadyOfferedItems = PriceUtils.getQuantity(InventoryID.TRADEOFFER, offerManager.getActiveItemID());
                 final long sellCount = config.defaultRoundingMethod().method.apply((double)receivedCurrency / (double)inputPricePerItem) - alreadyOfferedItems;
-                final long inventoryQuantity = PriceUtils.getQuantity(InventoryID.INV, tradeCalculatorManager.getActiveItemID());
+                final long inventoryQuantity = PriceUtils.getQuantity(InventoryID.INV, offerManager.getActiveItemID());
                 if (printWarning)
                 {
                     if (sellCount < 0)

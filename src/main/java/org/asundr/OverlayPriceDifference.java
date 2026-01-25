@@ -30,7 +30,7 @@ public class OverlayPriceDifference extends OverlayPanel
         {
             return null;
         }
-        if (OfferManager.getTradeState() != OfferManager.TradeState.TRADE_OFFER || OfferManager.getTradeType() == OfferManager.TradeType.INVALID)
+        if (OfferManager.getTradeState() != OfferManager.TradeState.TRADE_OFFER || OfferManager.getTradeType() == TradeType.INVALID)
         {
             return null;
         }
@@ -49,7 +49,7 @@ public class OverlayPriceDifference extends OverlayPanel
                 graphics.getFontMetrics().stringWidth(differenceText) + 10,
                 40));
         final Rectangle rect = OfferManager.getTradeMenuLocation();
-        final int xOffset = OfferManager.getTradeType() == OfferManager.TradeType.BUYING ? -6*rect.width/8 : rect.width/8 - 10;
+        final int xOffset = OfferManager.getTradeType() == TradeType.BUYING ? -6*rect.width/8 : rect.width/8 - 10;
         setPreferredLocation(new java.awt.Point((int)rect.getX() + rect.width/2 + xOffset,  (int)rect.getY() + OFFSET_Y));
         return super.render(graphics);
     }

@@ -58,23 +58,19 @@ public class OfferAtPricePlugin extends Plugin
 	@Inject private ChatMessageManager chatMessageManager;
 	@Inject private Notifier notifier;
 
-	private TradeCalculatorManager tradeCalculatorManager;
 	private OfferManager offerManager;
 
 	@Override
 	protected void startUp() throws Exception
 	{
 		PriceUtils.initialize(client, itemManager, notifier, chatMessageManager);
-		tradeCalculatorManager = new TradeCalculatorManager(client, keyManager, clientThread, eventBus, config);
-		offerManager = new OfferManager(config, client, clientThread, eventBus, overlayManager, itemManager);
-		eventBus.register(tradeCalculatorManager);
+		offerManager = new OfferManager(config, client, clientThread, eventBus, overlayManager, keyManager, itemManager);
 	}
 
 	@Override
 	protected void shutDown() throws Exception
 	{
 		offerManager.shutdown();
-		tradeCalculatorManager.shutDown();
 	}
 
 	@Provides

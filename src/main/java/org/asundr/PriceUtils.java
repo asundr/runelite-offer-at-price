@@ -192,20 +192,20 @@ public class PriceUtils
     }
 
     // Analyzes the trade and returns whether the players is selling one type of item, buying one type of item or is more complex (INVALID)
-    public static OfferType getOfferType(final int itemId)
+    public static TradeType getOfferType(final int itemId)
     {
         final boolean offerCurrency = isCurrency(itemId);
         final boolean otherCurrency = isCurrencyOnly(TRADEOTHER);
         if (offerCurrency == otherCurrency)
         {
-            return OfferType.INVALID;
+            return TradeType.INVALID;
         }
         final boolean oneTypeReceived = hasOneTypeOfItem(TRADEOTHER);
         if (offerCurrency && !oneTypeReceived)
         {
-            return OfferType.INVALID;
+            return TradeType.INVALID;
         }
-        return offerCurrency ? OfferType.BUY : OfferType.SELL;
+        return offerCurrency ? TradeType.BUYING : TradeType.SELLING;
     }
 
     // Given a widget, tries to find a valid item ID in it or its child widgets
