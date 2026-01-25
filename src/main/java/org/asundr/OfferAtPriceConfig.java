@@ -43,9 +43,14 @@ public interface OfferAtPriceConfig extends Config
 	String SECTION_GENERAL = "general";
 
 	@ConfigSection(
-			name = "Overlay", description = "Overlay during trades", position = 1
+			name = "Overlay - Price per Item", description = "Overlay that show calculated cost per item", position = 1
 	)
-	String SECTION_OVERLAY = "overlay";
+	String SECTION_OVERLAY_PRICE = "overlay_price";
+
+	@ConfigSection(
+			name = "Overlay - Price Difference", description = "Overlay that shows how far of a trade is from the target price", position = 1
+	)
+	String SECTION_OVERLAY_DIFFERENCE = "overlay_difference";
 
 	@ConfigSection(
 			name = "Notifications", description = "Notifications for warnings when offering at price", position = 3
@@ -79,37 +84,43 @@ public interface OfferAtPriceConfig extends Config
 
 	@ConfigItem(
 			keyName = "hideOverlayForInvalid", name = "Hide overlay if invalid", description = "Hide overlay if not a 'simple trade' of currency for a single item type",
-			section = SECTION_OVERLAY, position = -9
+			section = SECTION_OVERLAY_PRICE, position = -9
 	)
 	default boolean hideOverlayForInvalid() { return false; }
 
 	@ConfigItem(
 			keyName = "showPricePerItemOverlay", name = "Enable price per item overlay", description = "During trades of items for currency, will display the current price per item",
-			section = SECTION_OVERLAY, position = -10
+			section = SECTION_OVERLAY_PRICE, position = -10
 	)
 	default boolean showPricePerItemOverlay() { return true; }
 
 	@ConfigItem(
 			keyName = "showItemNameInOverlay", name = "Show item name in overlay", description = "When showing the price per item overlay include the name of the item being traded",
-			section = SECTION_OVERLAY
+			section = SECTION_OVERLAY_PRICE
 	)
 	default boolean showItemNameInOverlay() { return false; }
 
 	@ConfigItem(
 			keyName = "colorOfPriceOverlay", name = "Price overlay color", description = "The color used for the text on the price per item overlay",
-			section = SECTION_OVERLAY
+			section = SECTION_OVERLAY_PRICE
 	)
 	default Color colorOfPriceOverlay() { return new Color(0xB5, 0xE4, 0x93); }
 
 	@ConfigItem(
 			keyName = "showPriceDifference", name = "Enable price difference overlay", description = "Shows the current price difference for the entered price",
-			section = SECTION_OVERLAY
+			section = SECTION_OVERLAY_DIFFERENCE
 	)
 	default boolean showPriceDifference() { return true; }
 
 	@ConfigItem(
+			keyName = "showPriceDifferenceNotSet", name = "Difference overlay when price not set", description = "Price difference overlay will warn when a price has not been set and cannot show difference.",
+			section = SECTION_OVERLAY_DIFFERENCE
+	)
+	default boolean showPriceDifferenceNotSet() { return true; }
+
+	@ConfigItem(
 			keyName = "colorOfDifferenceOverlay", name = "Difference overlay color", description = "The color used for the text on the price difference overlay",
-			section = SECTION_OVERLAY
+			section = SECTION_OVERLAY_DIFFERENCE
 	)
 	default Color colorOfDifferenceOverlay() { return new Color(0xB5, 0xE4, 0x93); }
 }

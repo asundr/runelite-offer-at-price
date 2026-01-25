@@ -35,12 +35,24 @@ public class OverlayPriceDifference extends OverlayPanel
             return null;
         }
         final OfferManager.OfferInfo offerInfo = OfferManager.getOfferInfo();
-        if (offerInfo.inputPrice == 0 || offerInfo.priceDifference == 0L)
+        if (offerInfo.priceDifference == 0L)
         {
             return null;
         }
-        final String differenceText = String.format(offerInfo.priceDifference < 0 ? FORMAT_REMOVE_COINS : FORMAT_ADD_COINS,
-                QuantityFormatter.formatNumber(Math.abs(offerInfo.priceDifference)), QuantityFormatter.formatNumber(OfferManager.getOfferInfo().inputPrice) );
+        String differenceText;
+        if (offerInfo.inputPrice == 0)
+        {
+            if (!config.showPriceDifferenceNotSet())
+            {
+                return null;
+            }
+            differenceText = "No price per item set.";
+        }
+        else
+        {
+            differenceText = String.format(offerInfo.priceDifference < 0 ? FORMAT_REMOVE_COINS : FORMAT_ADD_COINS,
+                    QuantityFormatter.formatNumber(Math.abs(offerInfo.priceDifference)), QuantityFormatter.formatNumber(OfferManager.getOfferInfo().inputPrice) );
+        }
         panelComponent.getChildren().add(TitleComponent.builder()
                 .text(differenceText)
                 .color(config.colorOfDifferenceOverlay())
