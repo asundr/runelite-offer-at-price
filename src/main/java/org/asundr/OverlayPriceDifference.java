@@ -11,7 +11,9 @@ public class OverlayPriceDifference extends OverlayPanel
 {
     private static final String FORMAT_REMOVE_COINS = "Remove %s gp  (%s ea)";
     private static final String FORMAT_ADD_COINS = "Add %s gp  (%s ea)";
-    private static final int OFFSET_Y = 120;
+    private static final int OFFSET_Y = 105;
+    private static final int OFFSET_X_SELLING = -10;
+    private static final int OFFSET_Y_SELLING = 80;
     private static OfferAtPriceConfig config;
 
     OverlayPriceDifference(OfferAtPriceConfig config)
@@ -61,7 +63,7 @@ public class OverlayPriceDifference extends OverlayPanel
                 graphics.getFontMetrics().stringWidth(differenceText) + 10,
                 40));
         final Rectangle rect = OfferManager.getTradeMenuLocation();
-        final int xOffset = OfferManager.getTradeType() == TradeType.BUYING ? -6*rect.width/8 : rect.width/8 - 10;
+        final int xOffset = OfferManager.getTradeType() == TradeType.BUYING ? -5*rect.width/8 + OFFSET_Y_SELLING : rect.width/8 + OFFSET_X_SELLING;
         setPreferredLocation(new java.awt.Point((int)rect.getX() + rect.width/2 + xOffset,  (int)rect.getY() + OFFSET_Y));
         return super.render(graphics);
     }
