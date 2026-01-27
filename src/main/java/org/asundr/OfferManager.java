@@ -4,10 +4,7 @@ import lombok.Getter;
 import net.runelite.api.Client;
 import net.runelite.api.KeyCode;
 import net.runelite.api.MenuEntry;
-import net.runelite.api.events.ItemContainerChanged;
-import net.runelite.api.events.MenuOpened;
-import net.runelite.api.events.WidgetClosed;
-import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.events.*;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.widgets.Widget;
@@ -80,12 +77,6 @@ public class OfferManager
     private static OfferInfo offerInfo = new OfferInfo();
     private final PriceKeyListener priceKeyListener;
 
-    @Getter
-    private int activeItemID = -1;
-    @Getter
-    private TradeType activeOfferType = TradeType.INVALID;
-
-
     private static OverlayPricePerItem overlayPricePerItem;
     private static OverlayPriceDifference overlayPriceDifference;
 
@@ -98,7 +89,7 @@ public class OfferManager
         OfferManager.overlayManager = overlayManager;
         OfferManager.keyManager = keyManager;
 
-        this.priceKeyListener = new PriceKeyListener(client, clientThread, this, config);
+        this.priceKeyListener = new PriceKeyListener(client, clientThread, config);
         keyManager.registerKeyListener(this.priceKeyListener);
         eventBus.register(this.priceKeyListener);
         this.priceKeyListener.setOnSubmitted(() -> this.priceKeyListener.setActive(false));
@@ -193,6 +184,10 @@ public class OfferManager
     @Subscribe
     private void onMenuOpened(final MenuOpened event)
     {
+        if (!client.isKeyPressed(KeyCode.KC_SHIFT))
+        {
+            return;
+        }
         final MenuEntry[] entries = event.getMenuEntries();
         for (int idx = entries.length -1; idx >= 0; --idx)
         {
@@ -205,20 +200,17 @@ public class OfferManager
             final int group = WidgetUtil.componentToInterface(w.getId());
             if (group == InterfaceID.TRADESIDE && TEXT_OFFER_X.equals(PriceUtils.sanitizeWidgetText(entry.getOption())) && entry.getIdentifier() == 5)
             {
-                activeItemID = PriceUtils.getItemIdFromWidget(w);
-                if (activeItemID == -1)
+                final int offerItemID = PriceUtils.getItemIdFromWidget(w);
+                if (offerItemID == -1)
                 {
                     return;
                 }
-                if (!client.isKeyPressed(KeyCode.KC_SHIFT))
+                final TradeType offerType = PriceUtils.getOfferType(offerItemID);
+                if (offerType == TradeType.INVALID)
                 {
                     return;
                 }
-                activeOfferType = PriceUtils.getOfferType(activeItemID);
-                if (activeOfferType == TradeType.INVALID)
-                {
-                    return;
-                }
+                priceKeyListener.setSelectedItemID(offerItemID);
                 entry.setOption(TEXT_OFFER_PRICE_X);
                 entry.onClick(e -> {
                     priceKeyListener.setActive(true);
@@ -251,9 +243,9 @@ public class OfferManager
         }
         if (tradeType != TradeType.INVALID)
         {
-            final int id = PriceUtils.getFirstItem(itemTradeId);
+            offerInfo.itemId = PriceUtils.getFirstItem(itemTradeId);
             final long totalCurrency = PriceUtils.getTotalCurrencyValue(currencyTradeId);
-            final long totalItemQuantity = PriceUtils.getQuantity(itemTradeId, id);
+            final long totalItemQuantity = PriceUtils.getQuantity(itemTradeId, offerInfo.itemId);
             offerInfo.price = (double)totalCurrency / (double)totalItemQuantity;
             if (offerInfo.inputPrice != 0)
             {
@@ -274,6 +266,7 @@ public class OfferManager
         if (tradeState == TradeState.NOT_TRADING)
         {
             offerInfo = new OfferInfo();
+            priceKeyListener.setSelectedItemID(-1);
         }
     }
 
