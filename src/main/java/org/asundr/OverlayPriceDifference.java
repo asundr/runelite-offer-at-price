@@ -35,10 +35,6 @@ public class OverlayPriceDifference extends OverlayPanel
             return null;
         }
         final OfferManager.OfferInfo offerInfo = OfferManager.getOfferInfo();
-        if (offerInfo.priceDifference == 0L)
-        {
-            return null;
-        }
         String differenceText;
         if (offerInfo.inputPrice == 0)
         {
@@ -47,6 +43,10 @@ public class OverlayPriceDifference extends OverlayPanel
                 return null;
             }
             differenceText = "No price per item set.";
+        }
+        else if (offerInfo.priceDifference == 0L)
+        {
+            return null;
         }
         else
         {
