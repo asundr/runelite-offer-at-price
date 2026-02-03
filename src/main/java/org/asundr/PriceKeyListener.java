@@ -39,7 +39,6 @@ import net.runelite.client.input.KeyListener;
 import net.runelite.client.util.QuantityFormatter;
 
 import java.awt.event.KeyEvent;
-import java.math.BigDecimal;
 import java.util.Objects;
 
 public class PriceKeyListener implements KeyListener
@@ -132,7 +131,7 @@ public class PriceKeyListener implements KeyListener
         {
             return 0;
         }
-        final String transformedPrice = transformDecimalPrice(inputText);
+        final String transformedPrice = PriceUtils.transformDecimalPrice(inputText);
         final TradeType offerType = PriceUtils.getOfferType(selectedItemID);
         if (offerType == TradeType.INVALID)
         {
@@ -204,48 +203,6 @@ public class PriceKeyListener implements KeyListener
         return outNum;
     }
     private long getOutputQuantity() {return getOutputQuantity(false); }
-
-    // Adapted from Decimal Prices
-    private static final BigDecimal ONE_THOUSAND = new BigDecimal(1_000);
-    private static final BigDecimal ONE_MILLION = new BigDecimal(1_000_000);
-    private static final BigDecimal ONE_BILLION = new BigDecimal(1_000_000_000);
-    private static final BigDecimal MAX = new BigDecimal(2_147_483_647);
-    private static String transformDecimalPrice(String decimalPrice)
-    {
-        // if passed string isn't a decimal return it as-is
-        if (!decimalPrice.matches("[0-9]+\\.[0-9]+[kmb]"))
-        {
-            return decimalPrice;
-        }
-        int priceStringLen = decimalPrice.length();
-        // get the unit from the end of string, k (thousands), m (millions) or b (billions)
-        char unit = decimalPrice.charAt(priceStringLen - 1);
-        // get the number xx.xx without the unit and parse as a BigDecimal (for precision)
-        BigDecimal amount = new BigDecimal(decimalPrice.substring(0, priceStringLen - 1));
-        // multiply the number and the unit
-        BigDecimal product;
-        switch (unit) {
-            case 'k':
-                product = amount.multiply(ONE_THOUSAND);
-                break;
-            case 'm':
-                product = amount.multiply(ONE_MILLION);
-                break;
-            case 'b':
-                product = amount.multiply(ONE_BILLION);
-                break;
-            default:
-                product = BigDecimal.ZERO;
-                break;
-        }
-        // bound result to maximum allowable price
-        if (product.compareTo(MAX) > 0) {
-            product = MAX;
-        }
-        // cast the BigDecimal to an int, truncating anything after the decimal in the process
-        int truncatedProduct = product.intValue();
-        return String.valueOf(truncatedProduct);
-    }
 
     @Override public void keyTyped(KeyEvent e) { }
     @Override public void keyReleased(KeyEvent e) { }
