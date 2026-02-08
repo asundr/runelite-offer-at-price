@@ -45,6 +45,7 @@ import java.util.HashMap;
 public class PriceUtils
 {
     public static final int TRADEOTHER = InventoryID.TRADEOFFER | 0x8000;
+    public static final String REGEX_VALID_PRICE = "^-?(?:\\d+(?:\\.\\d+)?|\\.?\\d+)[kmb]$";
 
     private static Client client;
     private static ItemManager itemManager;
@@ -269,7 +270,7 @@ public class PriceUtils
             return inputPrice;
         }
         // if passed string isn't a decimal return it as-is
-        if (!decimalPrice.matches("^-?(?:\\d+(?:\\.\\d+)|\\.?\\d+)?[kmb]$"))
+        if (!decimalPrice.matches(REGEX_VALID_PRICE))
         {
             return inputPrice;
         }
