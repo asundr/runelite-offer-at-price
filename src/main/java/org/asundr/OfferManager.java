@@ -3,6 +3,7 @@ package org.asundr;
 import lombok.Getter;
 import net.runelite.api.Client;
 import net.runelite.api.KeyCode;
+import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.events.*;
 import net.runelite.api.gameval.InterfaceID;
@@ -16,6 +17,7 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.input.KeyManager;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.util.Text;
 
 import java.awt.*;
 import java.util.Objects;
@@ -60,8 +62,11 @@ public class OfferManager
 
     static final int WIDGET_ID_TEXT_ENTRY = 162;
     static final int WIDGET_CHILD_ID_TEXT_ENTRY = 42;
+    private static final String OPTION_EXAMINE = "Examine";
+    private static final String OPTION_SET_PRICE = "Set price";
     private static final String TEXT_OFFER_X = "Offer-X";
     private static final String TEXT_OFFER_PRICE_X = "Offer-Price-X";
+    private static final String TEXT_INITIAL_PROMPT_FOR_PRICE = "Enter a price:";
 
     private static Client client;
     private static ClientThread clientThread;
@@ -184,10 +189,6 @@ public class OfferManager
     @Subscribe
     private void onMenuOpened(final MenuOpened event)
     {
-        if (!client.isKeyPressed(KeyCode.KC_SHIFT))
-        {
-            return;
-        }
         final MenuEntry[] entries = event.getMenuEntries();
         for (int idx = entries.length -1; idx >= 0; --idx)
         {
@@ -197,26 +198,56 @@ public class OfferManager
             {
                 return;
             }
-            final int group = WidgetUtil.componentToInterface(w.getId());
-            if (group == InterfaceID.TRADESIDE && TEXT_OFFER_X.equals(PriceUtils.sanitizeWidgetText(entry.getOption())) && entry.getIdentifier() == 5)
+            switch (WidgetUtil.componentToInterface(w.getId()))
             {
-                final int offerItemID = PriceUtils.getItemIdFromWidget(w);
-                if (offerItemID == -1)
-                {
-                    return;
-                }
-                final TradeType offerType = PriceUtils.getOfferType(offerItemID);
-                if (offerType == TradeType.INVALID)
-                {
-                    return;
-                }
-                priceKeyListener.setSelectedItemID(offerItemID);
-                entry.setOption(TEXT_OFFER_PRICE_X);
-                entry.onClick(e -> {
-                    priceKeyListener.setActive(true);
-                    Objects.requireNonNull(client.getWidget(WIDGET_ID_TEXT_ENTRY, WIDGET_CHILD_ID_TEXT_ENTRY)).setText("Enter a price:");
-                });
-
+                case InterfaceID.TRADESIDE:
+                    if (!client.isKeyPressed(KeyCode.KC_SHIFT))
+                    {
+                        return;
+                    }
+                    if (TEXT_OFFER_X.equals(PriceUtils.sanitizeWidgetText(entry.getOption())) && entry.getIdentifier() == 5)
+                    {
+                        final int offerItemID = PriceUtils.getItemIdFromWidget(w);
+                        if (offerItemID == -1)
+                        {
+                            return;
+                        }
+                        final TradeType offerType = PriceUtils.getOfferType(offerItemID);
+                        if (offerType == TradeType.INVALID)
+                        {
+                            return;
+                        }
+                        priceKeyListener.setSelectedItemID(offerItemID);
+                        entry.setOption(TEXT_OFFER_PRICE_X);
+                        entry.onClick(e -> {
+                            priceKeyListener.setActive(true);
+                            Objects.requireNonNull(client.getWidget(WIDGET_ID_TEXT_ENTRY, WIDGET_CHILD_ID_TEXT_ENTRY)).setText(TEXT_INITIAL_PROMPT_FOR_PRICE);
+                        });
+                    }
+                    break;
+                case InterfaceID.TRADEMAIN:
+                    int id = w.getItemId();
+                    if (!Text.removeTags(entry.getOption()).trim().equals(OPTION_EXAMINE))
+                    {
+                        break;
+                    }
+                    if (id != -1)
+                    {
+                        client.getMenu().createMenuEntry(idx)
+                                .setType(MenuAction.RUNELITE)
+                                .setOption(OPTION_SET_PRICE)
+                                .setTarget("")
+                                .onClick(menuEntry -> {
+                                    PriceUtils.promptString(TEXT_INITIAL_PROMPT_FOR_PRICE, "", input -> {
+                                        if (PriceUtils.isValidPrice(input))
+                                        {
+                                            setInputPrice(Integer.parseInt(PriceUtils.transformDecimalPrice(input)));
+                                            clientThread.invoke(this::updateTradeData);
+                                        }
+                                    });
+                                });
+                    }
+                    break;
             }
         }
     }
