@@ -126,8 +126,8 @@ public class PriceKeyListener implements KeyListener
     // Analyzes the current trade type and returns a quantity based on the price the player has entered
     private long getOutputQuantity(final boolean printWarning)
     {
-        final String inputText = lastInputText;
-        if (!inputText.matches(PriceUtils.REGEX_VALID_PRICE))
+        final String inputText = lastInputText.toLowerCase().trim();
+        if (!(inputText.matches(PriceUtils.REGEX_VALID_PRICE) || PriceUtils.isWholeNumber(inputText)))
         {
             return 0;
         }

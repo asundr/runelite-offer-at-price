@@ -69,6 +69,11 @@ public class PriceUtils
         return s.replaceAll("<[^>]*>", "").trim();
     }
 
+    public static boolean isWholeNumber(final String s)
+    {
+        try { Long.parseLong(s); } catch (Exception e) { return false; } return true;
+    }
+
     // Returns true if passed item id is for coins or platinum chips
     public static boolean isCurrency(final int itemId)
     {
