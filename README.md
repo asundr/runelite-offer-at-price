@@ -28,6 +28,7 @@ Additionally shows current price per item overlay during trades and an overlay f
 * At the submitted price, you don't have enough items to match the other player's offer
 
 ### Notes
+- Price can be set or modified by right-clicking on items in the trade window
 - If the option to "Offer at Price" doesn't appear when SHIFT-clicking an item in your inventory, the following may be the cause:
   - The other player hasn't offered any items yet
   - The other player has offered more than one type of item

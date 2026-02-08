@@ -127,7 +127,7 @@ public class PriceKeyListener implements KeyListener
     private long getOutputQuantity(final boolean printWarning)
     {
         final String inputText = lastInputText.toLowerCase().trim();
-        if (!(inputText.matches(PriceUtils.REGEX_VALID_PRICE) || PriceUtils.isWholeNumber(inputText)))
+        if (!PriceUtils.isValidPrice(inputText))
         {
             return 0;
         }

@@ -35,6 +35,7 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.chatbox.ChatboxPanelManager;
 import net.runelite.client.input.KeyManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -56,6 +57,7 @@ public class OfferAtPricePlugin extends Plugin
 	@Inject private KeyManager keyManager;
 	@Inject private ItemManager itemManager;
 	@Inject private ChatMessageManager chatMessageManager;
+	@Inject private ChatboxPanelManager chatboxPanelManager;
 	@Inject private Notifier notifier;
 
 	private OfferManager offerManager;
@@ -63,7 +65,7 @@ public class OfferAtPricePlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
-		PriceUtils.initialize(client, itemManager, notifier, chatMessageManager);
+		PriceUtils.initialize(client, itemManager, notifier, chatMessageManager, chatboxPanelManager);
 		offerManager = new OfferManager(config, client, clientThread, eventBus, overlayManager, keyManager, itemManager);
 	}
 

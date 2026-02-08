@@ -25,10 +25,8 @@
 
 package org.asundr;
 
-import net.runelite.api.ChatMessageType;
-import net.runelite.api.Client;
-import net.runelite.api.Item;
-import net.runelite.api.ItemContainer;
+import com.google.common.base.Strings;
+import net.runelite.api.*;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.gameval.ItemID;
 import net.runelite.api.widgets.Widget;
@@ -37,10 +35,13 @@ import net.runelite.client.chat.ChatMessageBuilder;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.chatbox.ChatboxPanelManager;
+import net.runelite.client.util.Text;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.function.Consumer;
 
 public class PriceUtils
 {
@@ -51,16 +52,18 @@ public class PriceUtils
     private static ItemManager itemManager;
     private static Notifier notifier;
     private static ChatMessageManager chatMessageManager;
+    private static ChatboxPanelManager chatboxPanelManager;
 
     // Caches a map of original item IDs to the ID of their noted variant
     private static final HashMap<Integer, Integer> notedIdMap = new HashMap<>();
 
-    public static void initialize(final Client client, final ItemManager itemManager, final Notifier notifier, final ChatMessageManager chatMessageManager)
+    public static void initialize(final Client client, final ItemManager itemManager, final Notifier notifier, final ChatMessageManager chatMessageManager, final ChatboxPanelManager chatboxPanelManager)
     {
         PriceUtils.client = client;
         PriceUtils.itemManager = itemManager;
         PriceUtils.notifier = notifier;
         PriceUtils.chatMessageManager = chatMessageManager;
+        PriceUtils.chatboxPanelManager = chatboxPanelManager;
     }
 
     // Removes html tags from string
@@ -69,9 +72,21 @@ public class PriceUtils
         return s.replaceAll("<[^>]*>", "").trim();
     }
 
-    public static boolean isWholeNumber(final String s)
+    // Returns true if the passed string can be parsed as a long
+    public static boolean isLongNumber(final String s)
     {
         try { Long.parseLong(s); } catch (Exception e) { return false; } return true;
+    }
+
+    public static boolean isIntegerNumber(final String s)
+    {
+        try { Integer.parseInt(s); } catch (Exception e) { return false; } return true;
+    }
+
+    // Returns true if the passed string is a whole number or can be converted into one
+    public static boolean isValidPrice(final String s)
+    {
+        return s != null && (isLongNumber(s) || s.matches(REGEX_VALID_PRICE));
     }
 
     // Returns true if passed item id is for coins or platinum chips
@@ -245,6 +260,21 @@ public class PriceUtils
             var comp = itemManager.getItemComposition(item.getId());
             notedIdMap.put(item.getId(), comp.getNote() == -1 ? item.getId() : comp.getLinkedNoteId());
         }
+    }
+
+    public static void promptString(final String prompt, final String initialText, final Consumer<String> response)
+    {
+        chatboxPanelManager.openTextInput(prompt)
+                .value(Strings.nullToEmpty(initialText))
+                .onDone((content) ->
+                {
+                    if (content == null)
+                    {
+                        return;
+                    }
+                    content = Text.removeTags(content).trim();
+                    response.accept(content);
+                }).build();
     }
 
     public static void chatMessage(final boolean notify, final String message)
