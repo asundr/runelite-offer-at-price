@@ -30,6 +30,7 @@ import net.runelite.api.Client;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.gameval.InventoryID;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.Notifier;
 import net.runelite.client.chat.ChatMessageBuilder;
@@ -44,11 +45,6 @@ import java.util.HashMap;
 public class PriceUtils
 {
     public static final int TRADEOTHER = InventoryID.TRADEOFFER | 0x8000;
-    private static final class ItemID
-    {
-        public static final int COINS = 995;
-        public static final int PLATINUM = 13204;
-    }
 
     private static Client client;
     private static ItemManager itemManager;
