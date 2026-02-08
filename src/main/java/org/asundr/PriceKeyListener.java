@@ -127,7 +127,7 @@ public class PriceKeyListener implements KeyListener
     private long getOutputQuantity(final boolean printWarning)
     {
         final String inputText = lastInputText;
-        if (!inputText.matches("[0-9]+(?:\\.[0-9]+[kmb])?"))
+        if (!inputText.matches(PriceUtils.REGEX_VALID_PRICE))
         {
             return 0;
         }
