@@ -47,6 +47,10 @@ public class PriceUtils
 {
     public static final int TRADEOTHER = InventoryID.TRADEOFFER | 0x8000;
     public static final String REGEX_VALID_PRICE = "^-?(?:\\d+(?:\\.\\d+)?|\\.?\\d+)[kmb]$";
+    private static final String TEXT_WARNING_BOTH_CURRENCY = "[Offer at Price] You must offer items for coins";
+    private static final String TEXT_WARNING_BOTH_ITEMS = "[Offer at Price] You must offer coins for items";
+    private static final String TEXT_WARNING_OTHER_EMPTY = "[Offer at Price] Other player must offer before you can offer at price";
+    private static final String TEXT_WARNING_SINGLE_ITEM_TYPE = "[Offer at Price] You can only offer at price for a single type of item";
 
     private static Client client;
     private static ItemManager itemManager;
@@ -117,6 +121,13 @@ public class PriceUtils
             }
         }
         return total;
+    }
+
+    // Returns true if the container has no items
+    public static boolean isContainerEmpty(final int inventoryId)
+    {
+        final ItemContainer container = client.getItemContainer(inventoryId);
+        return container == null || container.count() == 0;
     }
 
     // Returns the ID for the first item in the inventory, or -1 if none found
@@ -210,20 +221,32 @@ public class PriceUtils
     }
 
     // Analyzes the trade and returns whether the players is selling one type of item, buying one type of item or is more complex (INVALID)
-    public static TradeType getOfferType(final int itemId)
+    // showReason - if true, will show messages in the chat explaining why Offer-at-price option isn't visible
+    public static TradeType getOfferType(final int itemId, final boolean showReason)
     {
+        final String reason;
         final boolean offerCurrency = isCurrency(itemId);
-        final boolean otherCurrency = isCurrencyOnly(TRADEOTHER);
-        if (offerCurrency == otherCurrency)
+        if (isContainerEmpty(TRADEOTHER))
         {
-            return TradeType.INVALID;
+            reason = TEXT_WARNING_OTHER_EMPTY;
         }
-        final boolean oneTypeReceived = hasOneTypeOfItem(TRADEOTHER);
-        if (offerCurrency && !oneTypeReceived)
+        else if (offerCurrency == isCurrencyOnly(TRADEOTHER)) // trading coins for coins or items for items
         {
-            return TradeType.INVALID;
+            reason = offerCurrency ? TEXT_WARNING_BOTH_CURRENCY : TEXT_WARNING_BOTH_ITEMS;
         }
-        return offerCurrency ? TradeType.BUYING : TradeType.SELLING;
+        else if (offerCurrency && !hasOneTypeOfItem(TRADEOTHER))
+        {
+            reason = TEXT_WARNING_SINGLE_ITEM_TYPE;
+        }
+        else
+        {
+            return offerCurrency ? TradeType.BUYING : TradeType.SELLING;
+        }
+        if (showReason && !reason.isBlank())
+        {
+            PriceUtils.chatMessage(false, reason);
+        }
+        return TradeType.INVALID;
     }
 
     // Given a widget, tries to find a valid item ID in it or its child widgets
