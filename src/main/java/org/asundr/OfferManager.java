@@ -73,6 +73,7 @@ public class OfferManager
     private static EventBus eventBus;
     private static OverlayManager overlayManager;
     private static KeyManager keyManager;
+    private static OfferAtPriceConfig config;
 
     @Getter
     private static TradeState tradeState = TradeState.NOT_TRADING;
@@ -93,6 +94,7 @@ public class OfferManager
         OfferManager.eventBus = eventBus;
         OfferManager.overlayManager = overlayManager;
         OfferManager.keyManager = keyManager;
+        OfferManager.config = config;
 
         this.priceKeyListener = new PriceKeyListener(client, clientThread, config);
         keyManager.registerKeyListener(this.priceKeyListener);
@@ -212,7 +214,7 @@ public class OfferManager
                         {
                             return;
                         }
-                        final TradeType offerType = PriceUtils.getOfferType(offerItemID);
+                        final TradeType offerType = PriceUtils.getOfferType(offerItemID, config.showReasonIfInvalid());
                         if (offerType == TradeType.INVALID)
                         {
                             return;
@@ -242,7 +244,7 @@ public class OfferManager
                                         if (PriceUtils.isValidPrice(input))
                                         {
                                             setInputPrice(Integer.parseInt(PriceUtils.transformDecimalPrice(input)));
-                                            clientThread.invoke(this::updateTradeData);
+                                            clientThread.invokeLater(this::updateTradeData);
                                         }
                                     });
                                 });

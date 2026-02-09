@@ -132,7 +132,7 @@ public class PriceKeyListener implements KeyListener
             return 0;
         }
         final String transformedPrice = PriceUtils.transformDecimalPrice(inputText);
-        final TradeType offerType = PriceUtils.getOfferType(selectedItemID);
+        final TradeType offerType = PriceUtils.getOfferType(selectedItemID, false);
         if (offerType == TradeType.INVALID)
         {
             return 0;

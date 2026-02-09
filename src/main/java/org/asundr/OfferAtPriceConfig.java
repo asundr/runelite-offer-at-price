@@ -71,6 +71,14 @@ public interface OfferAtPriceConfig extends Config
 	}
 
 	@ConfigItem(
+			keyName = "showReasonIfInvalid",
+			name = "Show reason if invalid",
+			description = "When SHIFT right-clicking on an item during a trade, explains why the option to offer at price is unavailable.",
+			section = SECTION_GENERAL
+	)
+	default boolean showReasonIfInvalid() { return true; }
+
+	@ConfigItem(
 			keyName = "notifyNeedToRemove", name = "Notify if need to remove", description = "Send notification if you need to remove items from what has been offered at entered price",
 			section = SECTION_NOTIFICATIONS
 	)
