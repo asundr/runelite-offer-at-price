@@ -14,9 +14,10 @@ import java.util.HashMap;
 
 public class OverlayLastMessage extends OverlayPanel
 {
-
+    private static final int OFFSET_TRADE_OFFER = -10;
+    private static final int OFFSET_TRADE_CONFIRM = -25;
     private static OfferAtPriceConfig config;
-    private static HashMap<String, MessageNode> lastMessages = new HashMap<>();
+    private static final HashMap<String, MessageNode> lastMessages = new HashMap<>();
 
     private String lastMessage = null;
 
@@ -32,7 +33,10 @@ public class OverlayLastMessage extends OverlayPanel
     @Subscribe
     private void onEventTradeStateChanged(OfferManager.EventTradeStateChanged event)
     {
-        lastMessage = null;
+        if (event.currentState == OfferManager.TradeState.NOT_TRADING)
+        {
+            lastMessage = null;
+        }
     }
 
     @Subscribe
@@ -44,7 +48,6 @@ public class OverlayLastMessage extends OverlayPanel
             return;
         }
         lastMessages.put(eventName, evt.getMessageNode());
-        ChatMessageType type = evt.getType();
         final String playerName = OfferManager.getOfferInfo().playerName;
         if (!eventName.equals(playerName))
         {
@@ -68,7 +71,7 @@ public class OverlayLastMessage extends OverlayPanel
                 graphics.getFontMetrics().stringWidth(lastMessage) + 10,
                 40));
         final Rectangle rect = OfferManager.getTradeMenuLocation();
-        final int yOffset = -10;
+        final int yOffset = OfferManager.getTradeState() == OfferManager.TradeState.TRADE_OFFER ? OFFSET_TRADE_OFFER : OFFSET_TRADE_CONFIRM;
         setPreferredLocation(new java.awt.Point((int)rect.getX() + rect.width/2 - getBounds().width/2, yOffset + (int)rect.getY()));
         return super.render(graphics);
     }
