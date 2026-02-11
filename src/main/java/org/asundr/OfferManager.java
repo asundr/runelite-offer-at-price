@@ -346,7 +346,6 @@ public class OfferManager
             return;
         }
         offerInfo.playerName = name;
-        overlayLastMessage.onTradedPlayerNameChanged();
     }
 
     private static void extractPlayerName()

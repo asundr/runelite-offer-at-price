@@ -1,6 +1,5 @@
 package org.asundr;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.MessageNode;
@@ -31,8 +30,6 @@ public class OverlayLastMessage extends OverlayPanel
     private static OfferAtPriceConfig config;
     private static final HashMap<String, MessageNode> lastMessages = new HashMap<>();
 
-    private String lastMessage = null;
-
     OverlayLastMessage(OfferAtPriceConfig config)
     {
         OverlayLastMessage.config = config;
@@ -43,38 +40,25 @@ public class OverlayLastMessage extends OverlayPanel
     }
 
     @Subscribe
-    private void onEventTradeStateChanged(OfferManager.EventTradeStateChanged event)
-    {
-        if (event.currentState == OfferManager.TradeState.NOT_TRADING)
-        {
-            lastMessage = null;
-        }
-    }
-
-    @Subscribe
     private void onChatMessage(ChatMessage evt)
     {
-        final String eventName = Text.removeTags(evt.getName());
+        final String eventName = Text.removeTags(evt.getMessageNode().getName());
         if (!VALID_CHAT_TYPES.contains(evt.getType()))
         {
             return;
         }
         lastMessages.put(eventName, evt.getMessageNode());
-        final String playerName = OfferManager.getOfferInfo().playerName;
-        if (!eventName.equals(playerName))
-        {
-            return;
-        }
-        lastMessage = Text.removeTags(evt.getMessage());
     }
 
     @Override
     public Dimension render(Graphics2D graphics)
     {
-        if (lastMessage == null || !config.showLastChat() || !OfferManager.isTrading())
+        final String playerName = OfferManager.getOfferInfo().playerName;
+        if (playerName == null || !config.showLastChat() || !OfferManager.isTrading() || !lastMessages.containsKey(playerName))
         {
             return null;
         }
+        final String lastMessage = Text.removeTags(lastMessages.get(playerName).getValue());
         panelComponent.getChildren().add(TitleComponent.builder()
                 .text(lastMessage)
                 .color(config.colorOfLastChatOverlay())
@@ -86,19 +70,5 @@ public class OverlayLastMessage extends OverlayPanel
         final int yOffset = OfferManager.getTradeState() == OfferManager.TradeState.TRADE_OFFER ? OFFSET_TRADE_OFFER : OFFSET_TRADE_CONFIRM;
         setPreferredLocation(new java.awt.Point((int)rect.getX() + rect.width/2 - getBounds().width/2, yOffset + (int)rect.getY()));
         return super.render(graphics);
-    }
-
-    public void onTradedPlayerNameChanged()
-    {
-        final String playerName = OfferManager.getOfferInfo().playerName;
-        if (playerName == null)
-        {
-            return;
-        }
-        final MessageNode lastMessageNode = lastMessages.get(playerName);
-        if (lastMessageNode != null)
-        {
-            lastMessage = Text.removeTags(lastMessageNode.getValue()).trim();
-        }
     }
 }
