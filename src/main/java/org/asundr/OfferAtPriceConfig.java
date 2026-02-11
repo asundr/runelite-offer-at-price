@@ -43,9 +43,14 @@ public interface OfferAtPriceConfig extends Config
 	String SECTION_GENERAL = "general";
 
 	@ConfigSection(
-			name = "Overlay - Price per Item", description = "Overlay that show calculated cost per item", position = 1
+			name = "Overlay - Price per Item", description = "Overlay that shows calculated cost per item", position = 1
 	)
 	String SECTION_OVERLAY_PRICE = "overlay_price";
+
+	@ConfigSection(
+			name = "Overlay - Most Recent Chat", description = "Overlay that shows the last chat of the currently traded player", position = 1
+	)
+	String SECTION_OVERLAY_CHAT = "overlay_chat";
 
 	@ConfigSection(
 			name = "Overlay - Price Difference", description = "Overlay that shows how far of a trade is from the target price", position = 1
@@ -131,4 +136,16 @@ public interface OfferAtPriceConfig extends Config
 			section = SECTION_OVERLAY_DIFFERENCE
 	)
 	default Color colorOfDifferenceOverlay() { return new Color(0xB5, 0xE4, 0x93); }
+
+	@ConfigItem(
+			keyName = "showPriceLastChat", name = "Enable most recent chat overlay", description = "Shows the most recent chat message of the currently traded player",
+			section = SECTION_OVERLAY_CHAT
+	)
+	default boolean showLastChat() { return true; }
+
+	@ConfigItem(
+			keyName = "colorOfLastChatOverlay", name = "Last chat overlay color", description = "The color used for the text on the most recent chat overlay",
+			section = SECTION_OVERLAY_CHAT
+	)
+	default Color colorOfLastChatOverlay() { return new Color(0xB5, 0xE4, 0x93); }
 }
