@@ -90,6 +90,7 @@ public class OfferManager
 
     private static OverlayPricePerItem overlayPricePerItem;
     private static OverlayPriceDifference overlayPriceDifference;
+    private static OverlayLastMessage overlayLastMessage;
 
 
     OfferManager(OfferAtPriceConfig config, Client client, ClientThread clientThread, EventBus eventBus, OverlayManager overlayManager, KeyManager keyManager, ItemManager itemManager)
@@ -108,10 +109,13 @@ public class OfferManager
 
         overlayPricePerItem = new OverlayPricePerItem(config, clientThread, itemManager);
         overlayPriceDifference = new OverlayPriceDifference(config);
+        overlayLastMessage = new OverlayLastMessage(config);
         eventBus.register(this);
         eventBus.register(overlayPricePerItem);
+        eventBus.register(overlayLastMessage);
         overlayManager.add(overlayPricePerItem);
         overlayManager.add(overlayPriceDifference);
+        overlayManager.add(overlayLastMessage);
     }
 
     public void shutdown()
@@ -121,7 +125,9 @@ public class OfferManager
 
         overlayManager.remove(overlayPriceDifference);
         overlayManager.remove(overlayPricePerItem);
+        overlayManager.remove(overlayLastMessage);
         eventBus.unregister(overlayPricePerItem);
+        eventBus.unregister(overlayLastMessage);
         eventBus.unregister(this);
     }
 
