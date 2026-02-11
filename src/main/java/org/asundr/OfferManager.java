@@ -21,6 +21,7 @@ import net.runelite.client.util.Text;
 
 import java.awt.*;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 public class OfferManager
 {
@@ -47,6 +48,7 @@ public class OfferManager
         int inputPrice = 0;
         double price = 0d;
         long priceDifference = 0L;
+        String playerName = null;
     }
 
     static class EventTradeStateChanged
@@ -62,6 +64,9 @@ public class OfferManager
 
     static final int WIDGET_ID_TEXT_ENTRY = 162;
     static final int WIDGET_CHILD_ID_TEXT_ENTRY = 42;
+    private final static int CHILD_TRADE_USERNAME = 31;
+    private final static int CHILD_TRADE_CONFIRMATION_USERNAME = 30;
+    private final static Pattern PATTERN_TRADE_USERNAME = Pattern.compile("^Trading [Ww]ith:\\s*(.*)$");
     private static final String OPTION_EXAMINE = "Examine";
     private static final String OPTION_SET_PRICE = "Set price";
     private static final String TEXT_OFFER_X = "Offer-X";
@@ -301,6 +306,10 @@ public class OfferManager
             offerInfo = new OfferInfo();
             priceKeyListener.setSelectedItemID(-1);
         }
+        else if (tradeState == TradeState.TRADE_OFFER)
+        {
+            extractPlayerName();
+        }
     }
 
     public static boolean isTrading() { return tradeState != TradeState.NOT_TRADING; }
@@ -324,4 +333,37 @@ public class OfferManager
         offerInfo.inputPrice = inputPrice;
     }
 
+    private static void setTradedPlayerName(final String name)
+    {
+        if (name == null || name.equals(offerInfo.playerName))
+        {
+            return;
+        }
+        offerInfo.playerName = name;
+        overlayLastMessage.onTradedPlayerNameChanged();
+    }
+
+    private static void extractPlayerName()
+    {
+        if (isTrading() && offerInfo.playerName == null)
+        {
+            String playerName = null;
+            if (tradeState == TradeState.TRADE_OFFER)
+            {
+                playerName = PriceUtils.extractPatternFromWidget(InterfaceID.TRADEMAIN, CHILD_TRADE_USERNAME, PATTERN_TRADE_USERNAME);
+            }
+            else
+            {
+                playerName = PriceUtils.extractPatternFromWidget(InterfaceID.TRADECONFIRM, CHILD_TRADE_CONFIRMATION_USERNAME, PATTERN_TRADE_USERNAME);
+            }
+            if (playerName == null)
+            {
+                clientThread.invokeLater(OfferManager::extractPlayerName);
+            }
+            else
+            {
+                setTradedPlayerName(playerName);
+            }
+        }
+    }
 }
