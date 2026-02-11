@@ -42,6 +42,8 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PriceUtils
 {
@@ -264,6 +266,23 @@ public class PriceUtils
             }
         }
         return itemId;
+    }
+
+    // Returns a string matching the passed pattern if that pattern finds a match in the widget represented by the group and child IDs
+    public static String extractPatternFromWidget(int groupId, int childId, final Pattern p)
+    {
+        final Widget tradingWithWidget = client.getWidget(groupId, childId);
+        if (tradingWithWidget == null)
+        {
+            return null;
+        }
+        final String widgetText = Text.removeTags(tradingWithWidget.getText()).trim();
+        final Matcher m = p.matcher(widgetText);
+        if (m.find())
+        {
+            return m.group(1);
+        }
+        return null;
     }
 
     // Caches the relationship between noted and un-noted IDs for any new items from the passed inventory
