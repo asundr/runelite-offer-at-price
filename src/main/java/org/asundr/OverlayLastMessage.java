@@ -1,5 +1,7 @@
 package org.asundr;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.MessageNode;
 import net.runelite.api.events.ChatMessage;
@@ -11,11 +13,21 @@ import net.runelite.client.util.Text;
 
 import java.awt.*;
 import java.util.HashMap;
+import java.util.Set;
 
 public class OverlayLastMessage extends OverlayPanel
 {
     private static final int OFFSET_TRADE_OFFER = -10;
     private static final int OFFSET_TRADE_CONFIRM = -25;
+    private static final Set<ChatMessageType> VALID_CHAT_TYPES = ImmutableSet.of(
+            ChatMessageType.PUBLICCHAT,
+            ChatMessageType.FRIENDSCHAT,
+            ChatMessageType.CLAN_CHAT,
+            ChatMessageType.PRIVATECHAT,
+            ChatMessageType.MODCHAT,
+            ChatMessageType.MODPRIVATECHAT,
+            ChatMessageType.CLAN_GUEST_CHAT
+    );
     private static OfferAtPriceConfig config;
     private static final HashMap<String, MessageNode> lastMessages = new HashMap<>();
 
@@ -43,7 +55,7 @@ public class OverlayLastMessage extends OverlayPanel
     private void onChatMessage(ChatMessage evt)
     {
         final String eventName = Text.removeTags(evt.getName());
-        if (eventName.isEmpty())
+        if (!VALID_CHAT_TYPES.contains(evt.getType()))
         {
             return;
         }
