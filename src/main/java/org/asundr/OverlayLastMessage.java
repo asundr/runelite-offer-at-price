@@ -18,6 +18,7 @@ public class OverlayLastMessage extends OverlayPanel
 {
     private static final int OFFSET_TRADE_OFFER = -10;
     private static final int OFFSET_TRADE_CONFIRM = -25;
+    private static final String TEMPLATE_MESSAGE = "%s: %s";
     private static final Set<ChatMessageType> VALID_CHAT_TYPES = ImmutableSet.of(
             ChatMessageType.PUBLICCHAT,
             ChatMessageType.FRIENDSCHAT,
@@ -58,7 +59,7 @@ public class OverlayLastMessage extends OverlayPanel
         {
             return null;
         }
-        final String lastMessage = Text.removeTags(lastMessages.get(playerName).getValue());
+        final String lastMessage = String.format(TEMPLATE_MESSAGE, playerName, Text.removeTags(lastMessages.get(playerName).getValue()));
         panelComponent.getChildren().add(TitleComponent.builder()
                 .text(lastMessage)
                 .color(config.colorOfLastChatOverlay())
