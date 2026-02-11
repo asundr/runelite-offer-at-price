@@ -43,23 +43,28 @@ public class OverlayLastMessage extends OverlayPanel
     @Subscribe
     private void onChatMessage(ChatMessage evt)
     {
-        final String eventName = Text.removeTags(evt.getMessageNode().getName());
+        final String jagexName = Text.toJagexName(Text.removeTags(evt.getMessageNode().getName()));
         if (!VALID_CHAT_TYPES.contains(evt.getType()))
         {
             return;
         }
-        lastMessages.put(eventName, evt.getMessageNode());
+        lastMessages.put(jagexName, evt.getMessageNode());
     }
 
     @Override
     public Dimension render(Graphics2D graphics)
     {
         final String playerName = OfferManager.getOfferInfo().playerName;
-        if (playerName == null || !config.showLastChat() || !OfferManager.isTrading() || !lastMessages.containsKey(playerName))
+        if (OfferManager.getOfferInfo().playerName == null)
         {
             return null;
         }
-        final String lastMessage = String.format(TEMPLATE_MESSAGE, playerName, Text.removeTags(lastMessages.get(playerName).getValue()));
+        final String jagexName = Text.toJagexName(playerName);
+        if (!config.showLastChat() || !OfferManager.isTrading() || !lastMessages.containsKey(jagexName))
+        {
+            return null;
+        }
+        final String lastMessage = String.format(TEMPLATE_MESSAGE, playerName, Text.removeTags(lastMessages.get(jagexName).getValue()));
         panelComponent.getChildren().add(TitleComponent.builder()
                 .text(lastMessage)
                 .color(config.colorOfLastChatOverlay())
