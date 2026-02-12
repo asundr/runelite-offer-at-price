@@ -49,7 +49,7 @@ public class PriceKeyListener implements KeyListener
     private static final String TEMPLATE_PRICE_PROMPT_REMOVING = String.format(TEMPLATE_PRICE_PROMPT, "remove", "%s");
     private static final String MESSAGE_PREFIX = "[Offer at Price] ";
     private static final String TEMPLATE_REMOVE_ITEMS = MESSAGE_PREFIX + "You need to remove %s item(s) from your current offer to match %s item(s) at the provided price (%s).";
-    private static final String TEMPLATE_ADD_ITEMS = MESSAGE_PREFIX + "You need to add %s item(s) to your current offer to match %s item(s) at the provided price (%s).";
+    private static final String TEMPLATE_ADD_ITEMS = MESSAGE_PREFIX + "You need to add %s item(s) to your current offer to match %s items at the provided price (%s).";
     private static final String TEMPLATE_NOT_ENOUGH_ITEMS = MESSAGE_PREFIX + "You don't have enough items (missing %s) to match at the provided price (%s). Value of your offer: %s.";
     private static final String TEMPLATE_REMOVE_COINS = MESSAGE_PREFIX + "You need to remove %sgp from your current offer to match %sgp worth of items at the provided price (%sgp).";
     private static final String TEMPLATE_ADD_COINS = MESSAGE_PREFIX + "You need to add %sgp to your current offer to match %sgp at the provided price (%sgp).";
@@ -165,39 +165,9 @@ public class PriceKeyListener implements KeyListener
                 final long alreadyOfferedItems = PriceUtils.getQuantity(InventoryID.TRADEOFFER, selectedItemID);
                 final long expectedItemCount = config.defaultRoundingMethod().method.apply((double)receivedCurrency / (double)inputPricePerItem);
                 final long transferCount = expectedItemCount - alreadyOfferedItems;
-                final long inventoryQuantity = PriceUtils.getQuantity(InventoryID.INV, selectedItemID);
                 if (printWarning)
                 {
-                    if (transferState == TransferState.GIVING)
-                    {
-                        if (transferCount < 0)
-                        {
-                            PriceUtils.chatMessage(config.notifyNeedToRemove(),
-                                    String.format(TEMPLATE_REMOVE_ITEMS,
-                                            QuantityFormatter.formatNumber(-transferCount),
-                                            QuantityFormatter.formatNumber(expectedItemCount),
-                                            QuantityFormatter.formatNumber(inputPricePerItem)));
-                        }
-                        else if (inventoryQuantity < transferCount)
-                        {
-                            final long valueOfYourOffer = inputPricePerItem * (alreadyOfferedItems + inventoryQuantity);
-                            PriceUtils.chatMessage(config.notifyNotEnough(),
-                                    String.format(TEMPLATE_NOT_ENOUGH_ITEMS,
-                                            QuantityFormatter.formatNumber(transferCount - inventoryQuantity),
-                                            QuantityFormatter.formatNumber(inputPricePerItem),
-                                            QuantityFormatter.formatNumber(valueOfYourOffer)));
-                        }
-                    }
-                    else  // Removing
-                    {
-                        if (transferCount > 0)
-                        {
-                            PriceUtils.chatMessage(config.notifyNeedToAdd(),
-                                    String.format(TEMPLATE_ADD_ITEMS,
-                                    QuantityFormatter.formatNumber(expectedItemCount - alreadyOfferedItems),
-                                    QuantityFormatter.formatNumber(expectedItemCount),
-                                    QuantityFormatter.formatNumber(inputPricePerItem)));                        }
-                    }
+                    printSellingWarning(inputPricePerItem, alreadyOfferedItems, expectedItemCount, transferCount);
                 }
                 outNum = Math.max(0, Math.min(Integer.MAX_VALUE, transferState == TransferState.GIVING ? transferCount : -transferCount));
             }
@@ -207,46 +177,86 @@ public class PriceKeyListener implements KeyListener
             final long receivedQuantity = PriceUtils.getQuantity(PriceUtils.TRADEOTHER, PriceUtils.getFirstItem(PriceUtils.TRADEOTHER));
             final long alreadyOfferedCurrency = PriceUtils.getTotalCurrencyValue(InventoryID.TRADEOFFER);
             final long transferQuantity = inputPricePerItem * receivedQuantity - alreadyOfferedCurrency;
-            final long inventoryCurrency = PriceUtils.getTotalCurrencyValue(InventoryID.INV);
             if (printWarning)
             {
-                if (transferState == TransferState.GIVING)
-                {
-                    if (transferQuantity < 0)
-                    {
-                        PriceUtils.chatMessage(config.notifyNeedToRemove(),
-                                String.format(TEMPLATE_REMOVE_COINS,
-                                        QuantityFormatter.formatNumber(-transferQuantity),
-                                        QuantityFormatter.formatNumber(inputPricePerItem * receivedQuantity),
-                                        QuantityFormatter.formatNumber(inputPricePerItem)));
-                    }
-                    else if (inventoryCurrency < transferQuantity)
-                    {
-                        final long canAffordCount = (alreadyOfferedCurrency + inventoryCurrency) / (long)inputPricePerItem;
-                        PriceUtils.chatMessage(config.notifyNotEnough(),
-                                String.format(TEMPLATE_NOT_ENOUGH_COINS,
-                                        QuantityFormatter.formatNumber(transferQuantity - inventoryCurrency),
-                                        QuantityFormatter.formatNumber(inputPricePerItem),
-                                        QuantityFormatter.formatNumber(canAffordCount)));
-                    }
-                }
-                else
-                {
-                    if (transferQuantity > 0)
-                    {
-                        PriceUtils.chatMessage(config.notifyNeedToAdd(),
-                                String.format(TEMPLATE_ADD_COINS,
-                                        QuantityFormatter.formatNumber(transferQuantity),
-                                        QuantityFormatter.formatNumber(inputPricePerItem * receivedQuantity),
-                                        QuantityFormatter.formatNumber(inputPricePerItem)));
-                    }
-                }
+                printBuyingWarning(inputPricePerItem, receivedQuantity, alreadyOfferedCurrency, transferQuantity);
             }
             outNum = Math.max(0, Math.min(Integer.MAX_VALUE, transferState == TransferState.GIVING ? transferQuantity : -transferQuantity));
         }
         return outNum;
     }
     private long getOutputQuantity() {return getOutputQuantity(false); }
+
+    private void printSellingWarning(int inputPricePerItem, long alreadyOfferedItems, long expectedItemCount, long transferCount)
+    {
+        final long inventoryQuantity = PriceUtils.getQuantity(InventoryID.INV, selectedItemID);
+        if (transferState == TransferState.GIVING)
+        {
+            if (transferCount < 0)
+            {
+                PriceUtils.chatMessage(config.notifyNeedToRemove(),
+                        String.format(TEMPLATE_REMOVE_ITEMS,
+                                QuantityFormatter.formatNumber(-transferCount),
+                                QuantityFormatter.formatNumber(expectedItemCount),
+                                QuantityFormatter.formatNumber(inputPricePerItem)));
+            }
+            else if (inventoryQuantity < transferCount)
+            {
+                final long valueOfYourOffer = inputPricePerItem * (alreadyOfferedItems + inventoryQuantity);
+                PriceUtils.chatMessage(config.notifyNotEnough(),
+                        String.format(TEMPLATE_NOT_ENOUGH_ITEMS,
+                                QuantityFormatter.formatNumber(transferCount - inventoryQuantity),
+                                QuantityFormatter.formatNumber(inputPricePerItem),
+                                QuantityFormatter.formatNumber(valueOfYourOffer)));
+            }
+        }
+        else  // Removing
+        {
+            if (transferCount > 0)
+            {
+                PriceUtils.chatMessage(config.notifyNeedToAdd(),
+                        String.format(TEMPLATE_ADD_ITEMS,
+                                QuantityFormatter.formatNumber(expectedItemCount - alreadyOfferedItems),
+                                QuantityFormatter.formatNumber(expectedItemCount),
+                                QuantityFormatter.formatNumber(inputPricePerItem)));                        }
+        }
+    }
+
+    private void printBuyingWarning(int inputPricePerItem, long receivedQuantity, long alreadyOfferedCurrency, long transferQuantity)
+    {
+        final long inventoryCurrency = PriceUtils.getTotalCurrencyValue(InventoryID.INV);
+        if (transferState == TransferState.GIVING)
+        {
+            if (transferQuantity < 0)
+            {
+                PriceUtils.chatMessage(config.notifyNeedToRemove(),
+                        String.format(TEMPLATE_REMOVE_COINS,
+                                QuantityFormatter.formatNumber(-transferQuantity),
+                                QuantityFormatter.formatNumber(inputPricePerItem * receivedQuantity),
+                                QuantityFormatter.formatNumber(inputPricePerItem)));
+            }
+            else if (inventoryCurrency < transferQuantity)
+            {
+                final long canAffordCount = (alreadyOfferedCurrency + inventoryCurrency) / (long)inputPricePerItem;
+                PriceUtils.chatMessage(config.notifyNotEnough(),
+                        String.format(TEMPLATE_NOT_ENOUGH_COINS,
+                                QuantityFormatter.formatNumber(transferQuantity - inventoryCurrency),
+                                QuantityFormatter.formatNumber(inputPricePerItem),
+                                QuantityFormatter.formatNumber(canAffordCount)));
+            }
+        }
+        else
+        {
+            if (transferQuantity > 0)
+            {
+                PriceUtils.chatMessage(config.notifyNeedToAdd(),
+                        String.format(TEMPLATE_ADD_COINS,
+                                QuantityFormatter.formatNumber(transferQuantity),
+                                QuantityFormatter.formatNumber(inputPricePerItem * receivedQuantity),
+                                QuantityFormatter.formatNumber(inputPricePerItem)));
+            }
+        }
+    }
 
     @Override public void keyTyped(KeyEvent e) { }
     @Override public void keyReleased(KeyEvent e) { }
