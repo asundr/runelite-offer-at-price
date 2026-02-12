@@ -96,6 +96,12 @@ public interface OfferAtPriceConfig extends Config
 	default boolean notifyNotEnough() { return true; }
 
 	@ConfigItem(
+			keyName = "notifyNeedToAdd", name = "Notify if need to add", description = "Send notification trying to remove offered items but already haven't offered enough to match the other offer at the entered price",
+			section = SECTION_NOTIFICATIONS
+	)
+	default boolean notifyNeedToAdd() { return true; }
+
+	@ConfigItem(
 			keyName = "hideOverlayForInvalid", name = "Hide overlay if invalid", description = "Hide overlay if not a 'simple trade' of currency for a single item type",
 			section = SECTION_OVERLAY_PRICE, position = -9
 	)

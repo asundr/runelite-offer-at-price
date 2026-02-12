@@ -27,8 +27,8 @@ public class OfferManager
 {
     private static final class TradeMenuId
     {
-        public static final int TRADE_MENU = 335;
-        public static final int TRADE_CONFIRMATION_MENU = 334;
+        public static final int TRADE_MENU = InterfaceID.TRADEMAIN;
+        public static final int TRADE_CONFIRMATION_MENU = InterfaceID.TRADECONFIRM;
     }
     private static final class TradeContainerId
     {
@@ -70,7 +70,9 @@ public class OfferManager
     private static final String OPTION_EXAMINE = "Examine";
     private static final String OPTION_SET_PRICE = "Set price";
     private static final String TEXT_OFFER_X = "Offer-X";
+    private static final String TEXT_REMOVE_X = "Remove-X";
     private static final String TEXT_OFFER_PRICE_X = "Offer-Price-X";
+    private static final String TEXT_REMOVE_PRICE_X = "Remove-Price-X";
     private static final String TEXT_INITIAL_PROMPT_FOR_PRICE = "Enter a price:";
 
     private static Client client;
@@ -105,7 +107,7 @@ public class OfferManager
         this.priceKeyListener = new PriceKeyListener(client, clientThread, config);
         keyManager.registerKeyListener(this.priceKeyListener);
         eventBus.register(this.priceKeyListener);
-        this.priceKeyListener.setOnSubmitted(() -> this.priceKeyListener.setActive(false));
+        this.priceKeyListener.setOnSubmitted(() -> this.priceKeyListener.setTransferState(PriceKeyListener.TransferState.INACTIVE));
 
         overlayPricePerItem = new OverlayPricePerItem(config, clientThread, itemManager);
         overlayPriceDifference = new OverlayPriceDifference(config);
@@ -167,7 +169,7 @@ public class OfferManager
         }
         else if (event.getGroupId() == WIDGET_ID_TEXT_ENTRY)
         {
-            priceKeyListener.setActive(false);
+            priceKeyListener.setTransferState(PriceKeyListener.TransferState.INACTIVE);
         }
     }
 
@@ -211,14 +213,16 @@ public class OfferManager
             {
                 return;
             }
+            final String option = Text.removeTags(entry.getOption()).trim();
             switch (WidgetUtil.componentToInterface(w.getId()))
             {
                 case InterfaceID.TRADESIDE:
+                {
                     if (!client.isKeyPressed(KeyCode.KC_SHIFT))
                     {
                         return;
                     }
-                    if (TEXT_OFFER_X.equals(PriceUtils.sanitizeWidgetText(entry.getOption())) && entry.getIdentifier() == 5)
+                    if (option.equals(TEXT_OFFER_X) && entry.getIdentifier() == 5)
                     {
                         final int offerItemID = PriceUtils.getItemIdFromWidget(w);
                         if (offerItemID == -1)
@@ -233,34 +237,55 @@ public class OfferManager
                         priceKeyListener.setSelectedItemID(offerItemID);
                         entry.setOption(TEXT_OFFER_PRICE_X);
                         entry.onClick(e -> {
-                            priceKeyListener.setActive(true);
+                            priceKeyListener.setTransferState(PriceKeyListener.TransferState.GIVING);
                             Objects.requireNonNull(client.getWidget(WIDGET_ID_TEXT_ENTRY, WIDGET_CHILD_ID_TEXT_ENTRY)).setText(TEXT_INITIAL_PROMPT_FOR_PRICE);
                         });
                     }
                     break;
+                }
                 case InterfaceID.TRADEMAIN:
+                {
                     int id = w.getItemId();
-                    if (!Text.removeTags(entry.getOption()).trim().equals(OPTION_EXAMINE))
+                    if (option.equals(OPTION_EXAMINE))
                     {
-                        break;
-                    }
-                    if (id != -1)
-                    {
-                        client.getMenu().createMenuEntry(idx)
-                                .setType(MenuAction.RUNELITE)
-                                .setOption(OPTION_SET_PRICE)
-                                .setTarget("")
-                                .onClick(menuEntry -> {
-                                    PriceUtils.promptString(TEXT_INITIAL_PROMPT_FOR_PRICE, "", input -> {
-                                        if (PriceUtils.isValidPrice(input))
-                                        {
-                                            setInputPrice(Integer.parseInt(PriceUtils.transformDecimalPrice(input)));
-                                            clientThread.invokeLater(this::updateTradeData);
-                                        }
+                        if (w.getItemId() != -1)
+                        {
+                            client.getMenu().createMenuEntry(idx)
+                                    .setType(MenuAction.RUNELITE)
+                                    .setOption(OPTION_SET_PRICE)
+                                    .setTarget("")
+                                    .onClick(menuEntry -> {
+                                        PriceUtils.promptString(TEXT_INITIAL_PROMPT_FOR_PRICE, "", input -> {
+                                            if (PriceUtils.isValidPrice(input))
+                                            {
+                                                setInputPrice(Integer.parseInt(PriceUtils.transformDecimalPrice(input)));
+                                                clientThread.invokeLater(this::updateTradeData);
+                                            }
+                                        });
                                     });
-                                });
+                        }
+                    }
+                    else if (option.equals(TEXT_REMOVE_X))
+                    {
+                        final int offerItemID = PriceUtils.getItemIdFromWidget(w);
+                        if (offerItemID == -1)
+                        {
+                            return;
+                        }
+                        final TradeType offerType = PriceUtils.getOfferType(offerItemID, config.showReasonIfInvalid());
+                        if (offerType == TradeType.INVALID)
+                        {
+                            return;
+                        }
+                        priceKeyListener.setSelectedItemID(offerItemID);
+                        entry.setOption(TEXT_REMOVE_PRICE_X);
+                        entry.onClick(e -> {
+                            priceKeyListener.setTransferState(PriceKeyListener.TransferState.REMOVING);
+                            Objects.requireNonNull(client.getWidget(WIDGET_ID_TEXT_ENTRY, WIDGET_CHILD_ID_TEXT_ENTRY)).setText(TEXT_INITIAL_PROMPT_FOR_PRICE);
+                        });
                     }
                     break;
+                }
             }
         }
     }
