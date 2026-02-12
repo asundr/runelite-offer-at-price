@@ -267,6 +267,10 @@ public class OfferManager
                     }
                     else if (option.equals(TEXT_REMOVE_X))
                     {
+                        if (!client.isKeyPressed(KeyCode.KC_SHIFT))
+                        {
+                            return;
+                        }
                         final int offerItemID = PriceUtils.getItemIdFromWidget(w);
                         if (offerItemID == -1)
                         {
