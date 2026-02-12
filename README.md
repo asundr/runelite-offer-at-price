@@ -8,7 +8,7 @@ Additionally shows current price per item overlay during trades and an overlay f
 
 **Even when using this plugin, it is your responsibility to verify the accuracy of your trades.**
 
-### How to Use
+### How to Offer
 1) Wait until the other player has submitted their offer
 2) SHIFT-right click on the item you plan to trade in return (coins for items, or items for coins)
 3) Select the option to "Offer at Price <_Selected Item_>"
@@ -27,7 +27,13 @@ Additionally shows current price per item overlay during trades and an overlay f
 * At the submitted price, you have already offered too many items to match and will need to manually remove some
 * At the submitted price, you don't have enough items to match the other player's offer
 
+### Overlays
+* **Price per item**: displays how many coins is being paid per item below the trade window
+* **Price difference**: shows how many items need to be added/removed to match the input price
+* **Last chat**: shows the most recent chat message from the currently traded player above the trade window
+
 ### Notes
+- Items can be removed by price by SHIFT right-clicking on already offered items
 - Price can be set or modified by right-clicking on items in the trade window
 - If the option to "Offer at Price" doesn't appear when SHIFT-clicking an item in your inventory, the following may be the cause:
   - The other player hasn't offered any items yet
