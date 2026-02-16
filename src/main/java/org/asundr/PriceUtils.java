@@ -31,6 +31,7 @@ import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.gameval.ItemID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.Notifier;
+import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
@@ -38,6 +39,7 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.chatbox.ChatboxPanelManager;
 import net.runelite.client.util.Text;
 
+import java.awt.*;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -49,10 +51,12 @@ public class PriceUtils
 {
     public static final int TRADEOTHER = InventoryID.TRADEOFFER | 0x8000;
     public static final String REGEX_VALID_PRICE = "^-?(?:\\d+(?:\\.\\d+)?|\\.?\\d+)[kmb]$";
-    private static final String TEXT_WARNING_BOTH_CURRENCY = "[Offer at Price] You must offer items for coins";
-    private static final String TEXT_WARNING_BOTH_ITEMS = "[Offer at Price] You must offer coins for items";
-    private static final String TEXT_WARNING_OTHER_EMPTY = "[Offer at Price] Other player must offer before you can offer at price";
-    private static final String TEXT_WARNING_SINGLE_ITEM_TYPE = "[Offer at Price] You can only offer at price for a single type of item";
+    public static final String TEXT_PLUGIN_PREFIX = "Offer at Price";
+    private static final String TEXT_WARNING_BOTH_CURRENCY = "You must offer items for coins";
+    private static final String TEXT_WARNING_BOTH_ITEMS = "You must offer coins for items";
+    private static final String TEXT_WARNING_OTHER_EMPTY = "Other player must offer before you can offer at price";
+    private static final String TEXT_WARNING_SINGLE_ITEM_TYPE = "You can only offer at price for a single type of item";
+    private static final Color COLOR_PLUGIN_PREFIX = new Color(0, 100, 0);
 
     private static Client client;
     private static ItemManager itemManager;
@@ -246,7 +250,7 @@ public class PriceUtils
         }
         if (showReason && !reason.isBlank())
         {
-            PriceUtils.chatMessage(false, reason);
+            PriceUtils.chatMessage(false, reason, true);
         }
         return TradeType.INVALID;
     }
@@ -319,20 +323,23 @@ public class PriceUtils
                 }).build();
     }
 
-    public static void chatMessage(final boolean notify, final String message)
+    public static void chatMessage(final boolean notify, final String message, boolean pluginPrefix)
     {
-        final ChatMessageBuilder messageBuilder = new ChatMessageBuilder()
-                .append(message);
+        final ChatMessageBuilder builder = new ChatMessageBuilder();
+        if (pluginPrefix)
+        {
+            builder.append("[").append(COLOR_PLUGIN_PREFIX, TEXT_PLUGIN_PREFIX).append("] ");
+        }
+        builder.append(message);
         chatMessageManager.queue(QueuedMessage.builder()
                 .type(ChatMessageType.GAMEMESSAGE)
-                .runeLiteFormattedMessage(messageBuilder.build())
+                .runeLiteFormattedMessage(builder.build())
                 .build());
         if (notify)
         {
-            notifier.notify(message);
+            notifier.notify(Text.removeTags(message));
         }
     }
-
 
     // Adapted from Decimal Prices
     private static final BigDecimal ONE_THOUSAND = new BigDecimal(1_000);

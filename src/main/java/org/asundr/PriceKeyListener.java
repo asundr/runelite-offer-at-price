@@ -47,13 +47,12 @@ public class PriceKeyListener implements KeyListener
     private static final String TEMPLATE_PRICE_PROMPT = "Enter a price: (will %s %s)";
     private static final String TEMPLATE_PRICE_PROMPT_GIVING = String.format(TEMPLATE_PRICE_PROMPT, "give", "%s");
     private static final String TEMPLATE_PRICE_PROMPT_REMOVING = String.format(TEMPLATE_PRICE_PROMPT, "remove", "%s");
-    private static final String MESSAGE_PREFIX = "[Offer at Price] ";
-    private static final String TEMPLATE_REMOVE_ITEMS = MESSAGE_PREFIX + "You need to remove %s item(s) from your current offer to match %s item(s) at the provided price (%s).";
-    private static final String TEMPLATE_ADD_ITEMS = MESSAGE_PREFIX + "You need to add %s item(s) to your current offer to match %s items at the provided price (%s).";
-    private static final String TEMPLATE_NOT_ENOUGH_ITEMS = MESSAGE_PREFIX + "You don't have enough items (missing %s) to match at the provided price (%s). Value of your offer: %s.";
-    private static final String TEMPLATE_REMOVE_COINS = MESSAGE_PREFIX + "You need to remove %sgp from your current offer to match %sgp worth of items at the provided price (%sgp).";
-    private static final String TEMPLATE_ADD_COINS = MESSAGE_PREFIX + "You need to add %sgp to your current offer to match %sgp at the provided price (%sgp).";
-    private static final String TEMPLATE_NOT_ENOUGH_COINS = MESSAGE_PREFIX + "You don't have enough coins (missing %sgp) to match at the provided price (%sgp). Can afford %s item(s) at this price.";
+    private static final String TEMPLATE_REMOVE_ITEMS = "You need to remove %s item(s) from your current offer to match %s item(s) at the provided price (%s).";
+    private static final String TEMPLATE_ADD_ITEMS = "You need to add %s item(s) to your current offer to match %s items at the provided price (%s).";
+    private static final String TEMPLATE_NOT_ENOUGH_ITEMS = "You don't have enough items (missing %s) to match at the provided price (%s). Value of your offer: %s.";
+    private static final String TEMPLATE_REMOVE_COINS = "You need to remove %sgp from your current offer to match %sgp worth of items at the provided price (%sgp).";
+    private static final String TEMPLATE_ADD_COINS = "You need to add %sgp to your current offer to match %sgp at the provided price (%sgp).";
+    private static final String TEMPLATE_NOT_ENOUGH_COINS = "You don't have enough coins (missing %sgp) to match at the provided price (%sgp). Can afford %s item(s) at this price.";
 
     private final Client client;
     private final ClientThread clientThread;
@@ -198,7 +197,7 @@ public class PriceKeyListener implements KeyListener
                         String.format(TEMPLATE_REMOVE_ITEMS,
                                 QuantityFormatter.formatNumber(-transferCount),
                                 QuantityFormatter.formatNumber(expectedItemCount),
-                                QuantityFormatter.formatNumber(inputPricePerItem)));
+                                QuantityFormatter.formatNumber(inputPricePerItem)), true);
             }
             else if (inventoryQuantity < transferCount)
             {
@@ -207,7 +206,7 @@ public class PriceKeyListener implements KeyListener
                         String.format(TEMPLATE_NOT_ENOUGH_ITEMS,
                                 QuantityFormatter.formatNumber(transferCount - inventoryQuantity),
                                 QuantityFormatter.formatNumber(inputPricePerItem),
-                                QuantityFormatter.formatNumber(valueOfYourOffer)));
+                                QuantityFormatter.formatNumber(valueOfYourOffer)), true);
             }
         }
         else  // Removing
@@ -218,7 +217,8 @@ public class PriceKeyListener implements KeyListener
                         String.format(TEMPLATE_ADD_ITEMS,
                                 QuantityFormatter.formatNumber(expectedItemCount - alreadyOfferedItems),
                                 QuantityFormatter.formatNumber(expectedItemCount),
-                                QuantityFormatter.formatNumber(inputPricePerItem)));                        }
+                                QuantityFormatter.formatNumber(inputPricePerItem)), true);
+            }
         }
     }
 
@@ -233,7 +233,7 @@ public class PriceKeyListener implements KeyListener
                         String.format(TEMPLATE_REMOVE_COINS,
                                 QuantityFormatter.formatNumber(-transferQuantity),
                                 QuantityFormatter.formatNumber(inputPricePerItem * receivedQuantity),
-                                QuantityFormatter.formatNumber(inputPricePerItem)));
+                                QuantityFormatter.formatNumber(inputPricePerItem)), true);
             }
             else if (inventoryCurrency < transferQuantity)
             {
@@ -242,7 +242,7 @@ public class PriceKeyListener implements KeyListener
                         String.format(TEMPLATE_NOT_ENOUGH_COINS,
                                 QuantityFormatter.formatNumber(transferQuantity - inventoryCurrency),
                                 QuantityFormatter.formatNumber(inputPricePerItem),
-                                QuantityFormatter.formatNumber(canAffordCount)));
+                                QuantityFormatter.formatNumber(canAffordCount)), true);
             }
         }
         else
@@ -253,7 +253,7 @@ public class PriceKeyListener implements KeyListener
                         String.format(TEMPLATE_ADD_COINS,
                                 QuantityFormatter.formatNumber(transferQuantity),
                                 QuantityFormatter.formatNumber(inputPricePerItem * receivedQuantity),
-                                QuantityFormatter.formatNumber(inputPricePerItem)));
+                                QuantityFormatter.formatNumber(inputPricePerItem)), true);
             }
         }
     }
