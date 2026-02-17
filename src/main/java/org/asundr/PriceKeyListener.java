@@ -47,12 +47,12 @@ public class PriceKeyListener implements KeyListener
     private static final String TEMPLATE_PRICE_PROMPT = "Enter a price: (will %s %s)";
     private static final String TEMPLATE_PRICE_PROMPT_GIVING = String.format(TEMPLATE_PRICE_PROMPT, "give", "%s");
     private static final String TEMPLATE_PRICE_PROMPT_REMOVING = String.format(TEMPLATE_PRICE_PROMPT, "remove", "%s");
-    private static final String TEMPLATE_REMOVE_ITEMS = "You need to remove %s item(s) from your current offer to match %s item(s) at the provided price (%s).";
-    private static final String TEMPLATE_ADD_ITEMS = "You need to add %s item(s) to your current offer to match %s items at the provided price (%s).";
-    private static final String TEMPLATE_NOT_ENOUGH_ITEMS = "You don't have enough items (missing %s) to match at the provided price (%s). Value of your offer: %s.";
-    private static final String TEMPLATE_REMOVE_COINS = "You need to remove %sgp from your current offer to match %sgp worth of items at the provided price (%sgp).";
-    private static final String TEMPLATE_ADD_COINS = "You need to add %sgp to your current offer to match %sgp at the provided price (%sgp).";
-    private static final String TEMPLATE_NOT_ENOUGH_COINS = "You don't have enough coins (missing %sgp) to match at the provided price (%sgp). Can afford %s item(s) at this price.";
+    private static final String TEMPLATE_REMOVE_ITEMS = "You need to remove %s item(s) from your current offer to match %s item(s) at the provided price (%s gp).";
+    private static final String TEMPLATE_ADD_ITEMS = "You need to add %s item(s) to your current offer to match %s items at the provided price (%s gp).";
+    private static final String TEMPLATE_NOT_ENOUGH_ITEMS = "You don't have enough items (missing %s) to match at the provided price (%s gp). Value of your offer: %s.";
+    private static final String TEMPLATE_REMOVE_COINS = "You need to remove %s gp from your current offer to match %s gp worth of items at the provided price (%s gp).";
+    private static final String TEMPLATE_ADD_COINS = "You need to add %s gp to your current offer to match %s gp at the provided price (%s gp).";
+    private static final String TEMPLATE_NOT_ENOUGH_COINS = "You don't have enough coins (missing %s gp) to match at the provided price (%s gp). Can afford %s item(s) at this price.";
 
     private final Client client;
     private final ClientThread clientThread;
@@ -193,31 +193,28 @@ public class PriceKeyListener implements KeyListener
         {
             if (transferCount < 0)
             {
-                PriceUtils.chatMessage(config.notifyNeedToRemove(),
-                        String.format(TEMPLATE_REMOVE_ITEMS,
-                                QuantityFormatter.formatNumber(-transferCount),
-                                QuantityFormatter.formatNumber(expectedItemCount),
-                                QuantityFormatter.formatNumber(inputPricePerItem)), true);
+                PriceUtils.chatMessageWithHighlighting(config.notifyNeedToRemove(), true, TEMPLATE_REMOVE_ITEMS,
+                        QuantityFormatter.formatNumber(-transferCount),
+                        QuantityFormatter.formatNumber(expectedItemCount),
+                        QuantityFormatter.formatNumber(inputPricePerItem));
             }
             else if (inventoryQuantity < transferCount)
             {
                 final long valueOfYourOffer = inputPricePerItem * (alreadyOfferedItems + inventoryQuantity);
-                PriceUtils.chatMessage(config.notifyNotEnough(),
-                        String.format(TEMPLATE_NOT_ENOUGH_ITEMS,
-                                QuantityFormatter.formatNumber(transferCount - inventoryQuantity),
-                                QuantityFormatter.formatNumber(inputPricePerItem),
-                                QuantityFormatter.formatNumber(valueOfYourOffer)), true);
+                PriceUtils.chatMessageWithHighlighting(config.notifyNotEnough(), true, TEMPLATE_NOT_ENOUGH_ITEMS,
+                        QuantityFormatter.formatNumber(transferCount - inventoryQuantity),
+                        QuantityFormatter.formatNumber(inputPricePerItem),
+                        QuantityFormatter.formatNumber(valueOfYourOffer));
             }
         }
         else  // Removing
         {
             if (transferCount > 0)
             {
-                PriceUtils.chatMessage(config.notifyNeedToAdd(),
-                        String.format(TEMPLATE_ADD_ITEMS,
-                                QuantityFormatter.formatNumber(expectedItemCount - alreadyOfferedItems),
-                                QuantityFormatter.formatNumber(expectedItemCount),
-                                QuantityFormatter.formatNumber(inputPricePerItem)), true);
+                PriceUtils.chatMessageWithHighlighting(config.notifyNeedToAdd(), true, TEMPLATE_ADD_ITEMS,
+                        QuantityFormatter.formatNumber(expectedItemCount - alreadyOfferedItems),
+                        QuantityFormatter.formatNumber(expectedItemCount),
+                        QuantityFormatter.formatNumber(inputPricePerItem));
             }
         }
     }
@@ -229,31 +226,28 @@ public class PriceKeyListener implements KeyListener
         {
             if (transferQuantity < 0)
             {
-                PriceUtils.chatMessage(config.notifyNeedToRemove(),
-                        String.format(TEMPLATE_REMOVE_COINS,
-                                QuantityFormatter.formatNumber(-transferQuantity),
-                                QuantityFormatter.formatNumber(inputPricePerItem * receivedQuantity),
-                                QuantityFormatter.formatNumber(inputPricePerItem)), true);
+                PriceUtils.chatMessageWithHighlighting(config.notifyNeedToRemove(), true, TEMPLATE_REMOVE_COINS,
+                        QuantityFormatter.formatNumber(-transferQuantity),
+                        QuantityFormatter.formatNumber(inputPricePerItem * receivedQuantity),
+                        QuantityFormatter.formatNumber(inputPricePerItem));
             }
             else if (inventoryCurrency < transferQuantity)
             {
                 final long canAffordCount = (alreadyOfferedCurrency + inventoryCurrency) / (long)inputPricePerItem;
-                PriceUtils.chatMessage(config.notifyNotEnough(),
-                        String.format(TEMPLATE_NOT_ENOUGH_COINS,
-                                QuantityFormatter.formatNumber(transferQuantity - inventoryCurrency),
-                                QuantityFormatter.formatNumber(inputPricePerItem),
-                                QuantityFormatter.formatNumber(canAffordCount)), true);
+                PriceUtils.chatMessageWithHighlighting(config.notifyNotEnough(), true, TEMPLATE_NOT_ENOUGH_COINS,
+                        QuantityFormatter.formatNumber(transferQuantity - inventoryCurrency),
+                        QuantityFormatter.formatNumber(inputPricePerItem),
+                        QuantityFormatter.formatNumber(canAffordCount));
             }
         }
         else
         {
             if (transferQuantity > 0)
             {
-                PriceUtils.chatMessage(config.notifyNeedToAdd(),
-                        String.format(TEMPLATE_ADD_COINS,
-                                QuantityFormatter.formatNumber(transferQuantity),
-                                QuantityFormatter.formatNumber(inputPricePerItem * receivedQuantity),
-                                QuantityFormatter.formatNumber(inputPricePerItem)), true);
+                PriceUtils.chatMessageWithHighlighting(config.notifyNeedToAdd(), true, TEMPLATE_ADD_COINS,
+                        QuantityFormatter.formatNumber(transferQuantity),
+                        QuantityFormatter.formatNumber(inputPricePerItem * receivedQuantity),
+                        QuantityFormatter.formatNumber(inputPricePerItem));
             }
         }
     }

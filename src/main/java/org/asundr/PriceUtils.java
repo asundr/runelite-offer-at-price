@@ -41,6 +41,7 @@ import net.runelite.client.util.Text;
 
 import java.awt.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.function.Consumer;
@@ -321,6 +322,46 @@ public class PriceUtils
                     content = Text.removeTags(content).trim();
                     response.accept(content);
                 }).build();
+    }
+
+    private static int[] findIndexes(String s, String match)
+    {
+        final ArrayList<Integer> indexes = new ArrayList<>();
+        int index = -2;
+        while ((index = s.indexOf(match, index+2)) != -1)
+        {
+            indexes.add((index));
+        }
+        return indexes.stream().mapToInt(i -> i).toArray();
+    }
+
+    static void chatMessageWithHighlighting(final boolean notify, boolean pluginPrefix, final String format, Object... args)
+    {
+        final ChatMessageBuilder builder = new ChatMessageBuilder();
+        if (pluginPrefix)
+        {
+            builder.append("[").append(COLOR_PLUGIN_PREFIX, TEXT_PLUGIN_PREFIX).append("] ");
+        }
+        final int[] indexes = findIndexes(format, "%s");
+        assert indexes.length == args.length : String.format("Expecting %s args but received %s", indexes.length, args.length);
+        int lastIndex = 0;
+        for (int i=0; i <indexes.length; ++i)
+        {
+           builder.append(format.substring(lastIndex, indexes[i])).append(Color.blue, ((String)args[i]));
+           lastIndex = indexes[i] + 2;
+        }
+        if (format.length() > lastIndex)
+        {
+            builder.append(format.substring(lastIndex));
+        }
+        chatMessageManager.queue(QueuedMessage.builder()
+                .type(ChatMessageType.GAMEMESSAGE)
+                .runeLiteFormattedMessage(builder.build())
+                .build());
+        if (notify)
+        {
+            notifier.notify(Text.removeTags(String.format(format, args)));
+        }
     }
 
     public static void chatMessage(final boolean notify, final String message, boolean pluginPrefix)
