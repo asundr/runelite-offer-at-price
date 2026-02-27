@@ -8,6 +8,13 @@ Additionally shows current price per item overlay during trades and an overlay f
 
 **Even when using this plugin, it is your responsibility to verify the accuracy of your trades.**
 
+### Features
+- Offer and remove items/coins in trades by providing a price per item (Shift+right-click)
+- Can manually change the price by right-clicking items in trade window
+- Calculates and displays the current price being paid for each item below the trade window
+- Displays by how much the trade is being over- or underpaid given the provided price
+- Displays the last chat message of the currently traded player above the trade window
+
 ### How to Offer
 1) Wait until the other player has submitted their offer
 2) SHIFT-right click on the item you plan to trade in return (coins for items, or items for coins)
